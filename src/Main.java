@@ -1,9 +1,8 @@
 public class Main
 {
 
-    static void main()
+    static void main() throws InterruptedException
     {
-        System.out.println("你好世界");
-        //
+        new LeaderAnim();
     }
 }
