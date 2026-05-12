@@ -9,17 +9,17 @@ public class LeaderAnim extends JFrame
 
     public LeaderAnim() throws InterruptedException
     {
-        this.setSize(500,460);
+        this.setSize(Constant.WINDOWS_WIDTH,Constant.WINDOWS_HEIGHT);
         this.setTitle("第一个窗口");
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
-        loadImage();
+        this.loadImage();
         this.setVisible(true);
 
         // 开始初始动画
         startAnim();
 
-        new GameIndex();
+        switchToGameMenu();
 
     }
 
@@ -32,8 +32,8 @@ public class LeaderAnim extends JFrame
         String[] filePath =
             {
                 // 这里必须使用绝对路径
-                "src/img/LeaderPic/1.png",
-                "src/img/LeaderPic/2.png",
+                "src/img/leaderPic/1.png",
+                "src/img/leaderPic/2.png",
             };
 
         img = new Image[filePath.length];
@@ -53,7 +53,7 @@ public class LeaderAnim extends JFrame
     @Override
     public void paint(Graphics g)
     {
-        super.paint(g);   // 这一句就是清空上一帧画面，防止花屏
+//        super.paint(g);   // 这一句就是清空上一帧画面，防止花屏
         if ( index >= 0 && index < img.length) {
             g.drawImage(img[index], 0, 0, 500, 460, this);
         }
@@ -64,7 +64,7 @@ public class LeaderAnim extends JFrame
      * @author cyt
      * @date 2026/5/11 22:20
      */
-    public void startAnim() throws InterruptedException
+    public void startAnim()
     {
         while ( index < img.length )
         {
@@ -81,9 +81,16 @@ public class LeaderAnim extends JFrame
             if( index == img.length )
                 break;
 
-            repaint();
+            this.repaint();
         }
         System.out.println("成功脱出");
     }
 
+    private void switchToGameMenu() {
+        this.getContentPane().removeAll();
+        this.add(new GameMenu());
+        this.revalidate();
+        this.repaint();
+
+    }
 }
