@@ -1,14 +1,31 @@
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * 功能描述：引导界面
+ * @author cyt
+ * @date 2026/5/13 20:50
+ */
 public class LeaderAnim extends JFrame
 {
 
-    private Image[] img;
+    Image[] img;
     int index = 0;
+    GameCard[] gameCard;
+    CardLayout cardLayout;
+    JPanel jPanel;
 
-    public LeaderAnim() throws InterruptedException
+    /**
+     * 功能描述：LeaderAnim构造方法
+     * @author cyt
+     * @date 2026/5/13 18:45
+     */
+    public LeaderAnim()
     {
+        jPanel = new JPanel();
+        cardLayout = new CardLayout();
+        jPanel.setLayout(cardLayout);
+        this.add(jPanel);
         this.setSize(Constant.WINDOWS_WIDTH,Constant.WINDOWS_HEIGHT);
         this.setTitle("第一个窗口");
         this.setLocationRelativeTo(null);
@@ -16,11 +33,36 @@ public class LeaderAnim extends JFrame
         this.loadImage();
         this.setVisible(true);
 
+        initGameCard();
+
         // 开始初始动画
         startAnim();
-
+        // 切换到菜单
         switchToGameMenu();
 
+
+    }
+
+    /**
+     * 功能描述：制作游戏卡片，切换界面使用
+     * @author cyt
+     * @date 2026/5/13 20:28
+     */
+    private void initGameCard()
+    {
+        gameCard = new GameCard[4];
+        gameCard[0] = new GameCard("开始游戏",cardLayout,jPanel);
+        gameCard[1] = new GameCard("游戏说明",cardLayout,jPanel);
+        gameCard[2] = new GameCard("制作团队",cardLayout,jPanel);
+
+        gameCard[1].addImage("src/img/gameMenu/shuoming.png");
+        gameCard[2].addImage("src/img/gameMenu/team.png");
+        gameCard[1].addExitButton("src/img/gameMenu/bk1.png");
+        gameCard[2].addExitButton("src/img/gameMenu/bk1.png");
+
+        jPanel.add(gameCard[0],"开始游戏");
+        jPanel.add(gameCard[1],"游戏说明");
+        jPanel.add(gameCard[2],"制作团队");
     }
 
     /**
@@ -53,7 +95,7 @@ public class LeaderAnim extends JFrame
     @Override
     public void paint(Graphics g)
     {
-//        super.paint(g);   // 这一句就是清空上一帧画面，防止花屏
+        super.paint(g);
         if ( index >= 0 && index < img.length) {
             g.drawImage(img[index], 0, 0, 500, 460, this);
         }
@@ -66,6 +108,7 @@ public class LeaderAnim extends JFrame
      */
     public void startAnim()
     {
+        // TODO 异步加载可能会首帧消失，Thread.sleep会阻塞
         while ( index < img.length )
         {
             try
@@ -85,12 +128,18 @@ public class LeaderAnim extends JFrame
         }
         System.out.println("成功脱出");
     }
-
+/**
+ * 功能描述：实现游戏菜单的进入
+ * @author cyt
+ * @date 2026/5/13 19:05
+ */
     private void switchToGameMenu() {
-        this.getContentPane().removeAll();
-        this.add(new GameMenu());
-        this.revalidate();
-        this.repaint();
-
+        GameMenu gameMenu = new GameMenu();
+        gameMenu.setCardLayout(cardLayout);
+        gameMenu.setContainer(jPanel);
+        jPanel.add(gameMenu, "游戏菜单");
+        cardLayout.show(jPanel, "游戏菜单");
+        jPanel.revalidate();
+        jPanel.repaint();
     }
 }
