@@ -25,6 +25,7 @@ public class LeaderAnim extends JFrame
         jPanel = new JPanel();
         cardLayout = new CardLayout();
         jPanel.setLayout(cardLayout);
+        this.setResizable(false);
         this.add(jPanel);
         this.setSize(Constant.WINDOWS_WIDTH,Constant.WINDOWS_HEIGHT);
         this.setTitle("第一个窗口");
@@ -33,10 +34,12 @@ public class LeaderAnim extends JFrame
         this.loadImage();
         this.setVisible(true);
 
-        initGameCard();
-
         // 开始初始动画
         startAnim();
+
+        // 加入两张卡片
+        initGameCard();
+
         // 切换到菜单
         switchToGameMenu();
 
@@ -51,7 +54,6 @@ public class LeaderAnim extends JFrame
     private void initGameCard()
     {
         gameCard = new GameCard[4];
-        gameCard[0] = new GameCard("开始游戏",cardLayout,jPanel);
         gameCard[1] = new GameCard("游戏说明",cardLayout,jPanel);
         gameCard[2] = new GameCard("制作团队",cardLayout,jPanel);
 
@@ -60,7 +62,6 @@ public class LeaderAnim extends JFrame
         gameCard[1].addExitButton("src/img/gameMenu/bk1.png");
         gameCard[2].addExitButton("src/img/gameMenu/bk1.png");
 
-        jPanel.add(gameCard[0],"开始游戏");
         jPanel.add(gameCard[1],"游戏说明");
         jPanel.add(gameCard[2],"制作团队");
     }

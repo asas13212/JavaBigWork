@@ -7,5 +7,7 @@ interface Constant
 {
      int WINDOWS_HEIGHT = 460;
      int WINDOWS_WIDTH = 500;
+     int MAP_HEIGHT = 1100;
+     int MAP_WIDTH = 1500;
 
 }

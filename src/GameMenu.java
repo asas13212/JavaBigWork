@@ -138,9 +138,9 @@ public class GameMenu extends JPanel
     private void buttonAddListener()
     {
 
-        for (int i = 0; i < jLabelsClick.length; i++)
+        for (JLabel jLabel : jLabelsClick)
         {
-            jLabelsClick[i].addMouseListener(new MyButtonListener());
+            jLabel.addMouseListener(new MyButtonListener());
         }   
     }
 
@@ -160,7 +160,9 @@ public class GameMenu extends JPanel
             {
                 case "开始游戏":
                     System.out.println("开始游戏按钮被点击了");
-                    cardLayout.show(container,jLabel.getName());
+                    new MainMap();
+                    SwingUtilities.getWindowAncestor(GameMenu.this).dispose();
+//                  cardLayout.show(container,jLabel.getName());
                     break;
                 case "游戏说明":
                     System.out.println("游戏说明按钮被点击了");
