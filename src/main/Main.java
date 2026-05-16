@@ -1,3 +1,5 @@
+package main;
+
 public class Main
 {
 /**
@@ -5,7 +7,7 @@ public class Main
  * @author cyt
  * @date 2026/5/13 18:46
  */
-    static void main() throws InterruptedException
+    static void main()
     {
         new LeaderAnim();
     }

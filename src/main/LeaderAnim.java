@@ -1,3 +1,5 @@
+package main;
+
 import javax.swing.*;
 import java.awt.*;
 
@@ -27,7 +29,7 @@ public class LeaderAnim extends JFrame
         jPanel.setLayout(cardLayout);
         this.setResizable(false);
         this.add(jPanel);
-        this.setSize(Constant.WINDOWS_WIDTH,Constant.WINDOWS_HEIGHT);
+        this.setSize(ConstantNum.WINDOWS_WIDTH, ConstantNum.WINDOWS_HEIGHT);
         this.setTitle("第一个窗口");
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);

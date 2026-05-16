@@ -1,8 +1,9 @@
+package main;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.image.BaseMultiResolutionImage;
 
 /**
  * 功能描述：卡片样式的模板类

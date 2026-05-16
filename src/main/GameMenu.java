@@ -1,3 +1,4 @@
+package main;
 
 import javax.swing.*;
 import java.awt.*;
@@ -35,7 +36,7 @@ public class GameMenu extends JPanel
         this.setLayout(null);
         this.setVisible(true);
         this.loadImage();
-        this.setSize(Constant.WINDOWS_WIDTH,Constant.WINDOWS_HEIGHT);
+        this.setSize(ConstantNum.WINDOWS_WIDTH, ConstantNum.WINDOWS_HEIGHT);
         this.uiDisplay();
         this.buttonAddListener();
 
@@ -126,7 +127,7 @@ public class GameMenu extends JPanel
 //            System.out.println(i + 2 + "张加载成功");
         }
 
-        jLabels[0].setBounds(0, 0, Constant.WINDOWS_WIDTH, Constant.WINDOWS_HEIGHT);
+        jLabels[0].setBounds(0, 0, ConstantNum.WINDOWS_WIDTH, ConstantNum.WINDOWS_HEIGHT);
         this.add(jLabels[0]);
     }
 
