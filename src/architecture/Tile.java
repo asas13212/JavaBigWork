@@ -11,7 +11,7 @@ public abstract class Tile
 
     private TileType tileType;
 
-    private Point position;
+    public Point position;
 
     private String name;
 
@@ -26,6 +26,10 @@ public abstract class Tile
         this.tileType = tileType;
         this.position = position;
         this.name = name;
+    }
+
+    public Tile()
+    {
     }
 
     public abstract void onPlayerArrive(Player player);
@@ -109,5 +113,7 @@ public abstract class Tile
     {
         this.hasBarrier = hasBarrier;
     }
+
+
     //</editor-fold>
 }

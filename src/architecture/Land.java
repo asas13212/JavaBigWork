@@ -16,10 +16,11 @@ public class Land extends Tile
     private int price;
 
 
-    public Land(int positionIndex, TileType tileType, Point position, String name)
+    public Land(int positionIndex, TileType tileType, Point position, String name,int price)
     {
         super(positionIndex, tileType, position, name);
         this.houseLevel = 0;
+        this.price = price;
     }
 
     @Override
@@ -53,5 +54,20 @@ public class Land extends Tile
             houseLevel++;
         }
 
+    }
+
+    public Player getOwner()
+    {
+        return owner;
+    }
+
+    public int getHouseLevel()
+    {
+        return houseLevel;
+    }
+
+    public int getPrice()
+    {
+        return price;
     }
 }

@@ -1,6 +1,7 @@
 package main;
 
-import architecture.TileType;
+import architecture.*;
+import jdk.jfr.Event;
 import org.testng.annotations.Test;
 
 import javax.swing.*;
@@ -29,6 +30,11 @@ public class MainMap extends JFrame
     Player[] players;
     static int round = 0;
 
+    ImageIcon[] naiLongLand =
+    {
+        null,null,new ImageIcon("src/img/architecture/naiLong/red22")
+    };
+
 
     public Point[] points
     //<editor-fold desc="直接copy过来">
@@ -41,14 +47,42 @@ public class MainMap extends JFrame
             new Point(580,765), new Point(510,715), new Point(445,665), new Point(375,615), new Point(305,565)
     };
     //</editor-fold>
-    TileType[] tileTypes
-    //<editor-fold desc="格子类型">
-            = {
-      TileType.START,TileType.EVENT,TileType.PROPERTY, TileType.PROPERTY,TileType.PROPERTY,TileType.PROPERTY,TileType.GACHA,TileType.SHOP,
-            TileType.HOSPITAL,TileType.PROPERTY,TileType.PROPERTY,TileType.PROPERTY,TileType.PROPERTY,TileType.PROPERTY,TileType.EVENT,TileType.PRISON,
-            TileType.GACHA,TileType.PROPERTY,TileType.PROPERTY,TileType.PROPERTY,TileType.PROPERTY,TileType.HOSPITAL,TileType.GACHA,TileType.EVENT,
-            TileType.EVENT,TileType.PROPERTY,TileType.PROPERTY,TileType.PROPERTY,TileType.PROPERTY,TileType.EMPTY
 
+    Tile[] tiles = {
+    //<editor-fold desc="初始化">
+            new Start(new Point()),
+            new EventLand(1,TileType.EVENT,new Point(),"公园"),
+            new Land(2,TileType.PROPERTY,new Point(280,375),"居民楼",2000),
+            new Land(3,TileType.PROPERTY,new Point(350,325),"旅馆",2000),
+            new Land(4,TileType.PROPERTY,new Point(420,275),"研究所",3000),
+            new Land(5,TileType.PROPERTY,new Point(415,165),"研究所",3000),
+            new Empty(),
+            new Chance(7,TileType.GACHA,new Point(),"抽卡点"),
+            new Shop(8,TileType.SHOP,new Point(),"商店"),
+
+            new Hospital(9,TileType.HOSPITAL,new Point(),"医院"),
+            new Land(10,TileType.PROPERTY,new Point(960,185),"体育馆",3000),
+            new Land(11,TileType.PROPERTY,new Point(1026,210),"小医院",3000),
+            null,
+            new Land(13,TileType.PROPERTY,new Point(1160,330),"居民楼3",3000),
+            new EventLand(14,TileType.EVENT,new Point(),"公园2"),
+            new Prison(15,TileType.PRISON,new Point(),"牢中"),
+
+            new Chance(16,TileType.GACHA,new Point(), "抽卡点2"),
+            new Land(17,TileType.PROPERTY,new Point(1028,518),"暂定1",3000),
+            new Land(18,TileType.PROPERTY,new Point(958,568),"暂定2",3000),
+            new Land(19,TileType.PROPERTY,new Point(958-70,618),"暂定3",3000),
+            new Land(20,TileType.PROPERTY,new Point(958-140,668),"暂定4",3000),
+            new Hospital(21,TileType.HOSPITAL,new Point(),"医院2"),
+            new Chance(22,TileType.GACHA,new Point(),"抽卡点3"),
+            new EventLand(23,TileType.EVENT,new Point(),"公园"),
+            new Empty(),
+
+            new Land(25,TileType.PROPERTY,new Point(620,715),"暂定5",3000),
+            new Land(26,TileType.PROPERTY,new Point(483,600),"暂定6",3000),
+            null,
+            new Land(28,TileType.PROPERTY,new Point(419,570),"暂定8",3000),
+            new Empty()
     };
     //</editor-fold>
 
@@ -170,6 +204,7 @@ public class MainMap extends JFrame
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
+                renderBuildings(g);
                 if (naiLong != null) {
                     naiLong.renderStaticSprite(g, naiLong.getPosition());
                 }
@@ -194,7 +229,7 @@ public class MainMap extends JFrame
                                 null);
                     }
                 }
-                // AI 教我做动画
+                // AI 教我做投掷骰子动画
                 if (isDiceRolling && diceImg != null)
                 {
                     int frameWidth = 100;
@@ -306,6 +341,24 @@ public class MainMap extends JFrame
                                         ((Timer) evt2.getSource()).stop();
                                         currentPlayer.resetWalkFrame();
                                         actorLayer.repaint();
+
+                                        if (tiles[currentPlayer.getPositionIndex()].getTileType() == TileType.PROPERTY)
+                                        {
+                                            int result = JOptionPane.showOptionDialog(
+                                                    null,
+                                                    "购买当前房产？价格是" + ((Land) tiles[currentPlayer.getPositionIndex()]).getPrice() ,
+                                                    "确认",
+                                                    JOptionPane.YES_NO_CANCEL_OPTION,
+                                                    JOptionPane.QUESTION_MESSAGE,
+                                                    null,
+                                                    new String[]{"确定", "取消"}, // 自定义按钮
+                                                    "确定"
+                                            );
+                                            if (result == 0) {
+                                                System.out.println("用户点了确定");
+                                            }
+                                        }
+
                                         nextPlayer();
                                     }
                                 });
@@ -313,6 +366,7 @@ public class MainMap extends JFrame
                             }
                         });
                         diceTimer.start();
+
 
                         roundIncrease();
                     }
@@ -390,4 +444,127 @@ public class MainMap extends JFrame
         round++;
     }
 
+    /**
+     * 功能描述：渲染所有房屋建筑
+     * @author cyt
+     * @date 2026/5/17
+     */
+    private void renderBuildings(Graphics g) {
+        //<editor-fold desc="AI 修改之前">
+//        for (int i = tiles.length - 1; i >= 0; i--) {
+//            Tile tile = tiles[i];
+//
+//            if (tile instanceof Land) {
+//                Land land = (Land) tile;
+//                // 只有当地产有所有者且有建筑时才渲染
+//                if (land.getOwner() != null ) {
+//                    renderBuildingForLand(g, land);
+//                } else {
+//                    renderBuidingForNull(g, land);
+//                }
+//            }
+//        }
+        //</editor-fold>
+
+        for (int i = tiles.length - 1; i >= 0; i--) {
+            Tile tile = tiles[i];
+            if (tile instanceof Land land) {
+                int index = land.getPositionIndex();
+                if ((index >= 0 && index <= 9) || (index >= 22 && index <= 29)) {
+                    renderLand(g, land);
+                }
+            }
+        }
+
+        // 第二步：再渲染正向区域（右+左，后画，盖在前面）
+        for (int i = 0; i < tiles.length; i++) {
+            Tile tile = tiles[i];
+            if (tile instanceof Land land) {
+                int index = land.getPositionIndex();
+                // 右半段 10~15 + 左半段 22~29，正向渲染
+                if ((index >= 10 && index <= 15) || (index >= 16 && index <= 21)) {
+                    renderLand(g, land);
+                }
+            }
+        }
+    }
+
+    /**
+     * 功能描述：渲染单个地产的房屋(有人)
+     * @author cyt
+     * @date 2026/5/17
+     */
+    private void renderBuildingForLand(Graphics g, Land land) {
+        Point position = land.getPosition();
+        if (position == null) return;
+
+        int x = (int) position.getX();
+        int y = (int) position.getY();
+
+
+            ImageIcon buildingIcon = naiLongLand[3];
+            Image buildingImage = buildingIcon.getImage();
+
+            // 调整房屋显示位置（可能需要偏移以居中显示在格子上）
+            int buildingWidth = 126;  // 根据实际图片调整
+            int buildingHeight = 95; // 根据实际图片调整
+
+            g.drawImage(buildingImage,
+                    x - buildingWidth/2,
+                    y - buildingHeight/2,
+                    buildingWidth,
+                    buildingHeight,
+                    null);
+
+    }
+
+    /**
+     * 功能描述：没人的地产
+     * @author cyt
+     * @date 2026/5/17 22:27
+     */
+    public void renderBuidingForNull(Graphics g,Land land)
+    {
+        Point point = land.getPosition();
+        if (point == null) return;
+
+        int x = (int) point.getX();
+        int y = (int) point.getY();
+
+        Image unsoldImage = new ImageIcon("src/img/architecture/小地未售2.png").getImage();
+        Image unsoldImage2 = new ImageIcon("src/img/architecture/大地未售2.png").getImage();
+        Image unsoldImage4 = new ImageIcon("src/img/architecture/大地未售.png").getImage();
+        Image unsoldImage3 = new ImageIcon("src/img/architecture/小地未售.png").getImage();
+
+        int index = land.getPositionIndex();
+
+        if (index == 5) {
+            g.drawImage(unsoldImage2, x, y, null);
+        } else if (index == 11 || index == 26) {
+            g.drawImage(unsoldImage4, x, y, null);
+        } else if ((index >= 2 && index <= 5) || (index >= 17 && index <= 20)) {
+            g.drawImage(unsoldImage, x, y, null);
+        } else if ((index >= 10 && index <= 13) || (index >= 25 && index <= 28)) {
+            g.drawImage(unsoldImage3, x, y, null);
+        }
+
+    }
+
+    /**
+     * 功能描述：AI 提取的简化方法
+     * @author cyt
+     * @date 2026/5/17 22:15
+     */
+    private void renderLand(Graphics g, Land land) {
+        if (land.getOwner() != null) {
+            renderBuildingForLand(g, land);
+        } else {
+            renderBuidingForNull(g, land);
+        }
+    }
+
+    static void main()
+    {
+        new MainMap();
+    }
 }
