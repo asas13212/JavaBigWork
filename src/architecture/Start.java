@@ -10,6 +10,7 @@ public class Start extends Tile
     public Start(Point position)
     {
         this.position = position;
+        this.tileType = TileType.START;
     }
 
     @Override

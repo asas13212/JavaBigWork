@@ -4,13 +4,13 @@ import main.Player;
 
 import java.awt.*;
 
-public class Chance extends Tile
+public class Event extends Tile
 {
 
-    public Chance(int positionIndex, Point position, String name)
+    public Event(int positionIndex, Point position, String name)
     {
         super(positionIndex, position, name);
-        this.tileType = TileType.GACHA;
+        this.tileType = TileType.EVENT;
     }
 
     @Override
@@ -18,6 +18,4 @@ public class Chance extends Tile
     {
 
     }
-
-
 }

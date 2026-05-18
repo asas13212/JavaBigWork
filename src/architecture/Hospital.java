@@ -7,9 +7,9 @@ import java.awt.*;
 public class Hospital extends Tile
 {
 
-    public Hospital(int positionIndex, TileType tileType, Point position, String name)
+    public Hospital(int positionIndex, Point position, String name)
     {
-        super(positionIndex, tileType, position, name);
+        super(positionIndex, position, name);
     }
 
     @Override

@@ -1,14 +1,12 @@
 package main;
 
 import architecture.*;
-import jdk.jfr.Event;
-import org.testng.annotations.Test;
+import architecture.Event;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.Serializable;
 
 public class MainMap extends JFrame
 {
@@ -30,7 +28,7 @@ public class MainMap extends JFrame
     Player[] players;
     static int round = 0;
 
-    ImageIcon[] naiLongLand =
+    public ImageIcon[] naiLongLand =
     {
         null,null,new ImageIcon("src/img/architecture/naiLong/red22")
     };
@@ -51,37 +49,37 @@ public class MainMap extends JFrame
     Tile[] tiles = {
     //<editor-fold desc="初始化">
             new Start(new Point()),
-            new EventLand(1,TileType.EVENT,new Point(),"公园"),
-            new Land(2,TileType.PROPERTY,new Point(280,375),"居民楼",2000),
-            new Land(3,TileType.PROPERTY,new Point(350,325),"旅馆",2000),
-            new Land(4,TileType.PROPERTY,new Point(420,275),"研究所",3000),
-            new Land(5,TileType.PROPERTY,new Point(415,165),"研究所",3000),
+            new Event(1, new Point(), "公园"),
+            new Land(2, new Point(280, 375), "体育馆", ),
+            new Land(3, new Point(350, 325), "旅馆", ),
+            new Land(4, new Point(420, 275), "研究所", ),
+            new Land(5, new Point(415, 165), "研究所", ),
             new Empty(),
-            new Chance(7,TileType.GACHA,new Point(),"抽卡点"),
-            new Shop(8,TileType.SHOP,new Point(),"商店"),
+            new Chance(7,  new Point(), "抽卡点"),
+            new Shop(8, new Point(), "商店"),
 
-            new Hospital(9,TileType.HOSPITAL,new Point(),"医院"),
-            new Land(10,TileType.PROPERTY,new Point(960,185),"体育馆",3000),
-            new Land(11,TileType.PROPERTY,new Point(1026,210),"小医院",3000),
+            new Hospital(9, new Point(), "医院"),
+            new Land(10,  new Point(960, 185), "体育馆", ),
+            new Land(11,  new Point(1026, 210), "小医院", ),
             null,
-            new Land(13,TileType.PROPERTY,new Point(1160,330),"居民楼3",3000),
-            new EventLand(14,TileType.EVENT,new Point(),"公园2"),
-            new Prison(15,TileType.PRISON,new Point(),"牢中"),
+            new Land(13, new Point(1160, 330), "居民楼3", ),
+            new Event(14, new Point(), "公园2"),
+            new Prison(15, new Point(), "牢中"),
 
-            new Chance(16,TileType.GACHA,new Point(), "抽卡点2"),
-            new Land(17,TileType.PROPERTY,new Point(1028,518),"暂定1",3000),
-            new Land(18,TileType.PROPERTY,new Point(958,568),"暂定2",3000),
-            new Land(19,TileType.PROPERTY,new Point(958-70,618),"暂定3",3000),
-            new Land(20,TileType.PROPERTY,new Point(958-140,668),"暂定4",3000),
-            new Hospital(21,TileType.HOSPITAL,new Point(),"医院2"),
-            new Chance(22,TileType.GACHA,new Point(),"抽卡点3"),
-            new EventLand(23,TileType.EVENT,new Point(),"公园"),
+            new Chance(16, new Point(), "抽卡点2"),
+            new Land(17, new Point(1028, 518), "暂定1", ),
+            new Land(18, new Point(958, 568), "暂定2", ),
+            new Land(19, new Point(958 - 70, 618), "暂定3", ),
+            new Land(20, new Point(958 - 140, 668), "暂定4", ),
+            new Hospital(21, new Point(), "医院2"),
+            new Chance(22,  new Point(), "抽卡点3"),
+            new Event(23,  new Point(), "公园"),
             new Empty(),
 
-            new Land(25,TileType.PROPERTY,new Point(620,715),"暂定5",3000),
-            new Land(26,TileType.PROPERTY,new Point(483,600),"暂定6",3000),
+            new Land(25,  new Point(620, 715), "暂定5", ),
+            new Land(26,  new Point(483, 600), "暂定6", ),
             null,
-            new Land(28,TileType.PROPERTY,new Point(419,570),"暂定8",3000),
+            new Land(28,  new Point(419, 570), "暂定8", ),
             new Empty()
     };
     //</editor-fold>
@@ -120,10 +118,10 @@ public class MainMap extends JFrame
      */
     private void loadPlayerAndImg()
     {
-
-
         naiLong = new Player(0,"naiLong",points[0]);
         xiaoMei = new Player(0,"xiaoMei",points[0]);
+        naiLong.setOtherPlayer(xiaoMei);
+        xiaoMei.setOtherPlayer(naiLong);
         naiLong.setMapPoints(points);
         xiaoMei.setMapPoints(points);
         loadSprites(naiLong, xiaoMei);
@@ -274,7 +272,7 @@ public class MainMap extends JFrame
     }
 
     /**
-     * 功能描述：添加ui界面的骰子并完成动画
+     * 功能描述：添加ui界面的骰子并启动动画
      * @author cyt
      * @date 2026/5/16 19:41
      */
@@ -311,60 +309,14 @@ public class MainMap extends JFrame
                         // 得出结果
                         diceValue = currentPlayer.rollDice();
 
-                        //
+                        // 现在的骰子帧数
                         currentDiceFrame = 0;
 
                         System.out.println(currentPlayer.getName() + "投掷出了" + diceValue
                         + "点数");
 
 
-                        diceTimer = new Timer(80,evt ->
-                        {
-                            currentDiceFrame++;
-                            actorLayer.repaint();
-
-                            if(currentDiceFrame >= 8)
-                            {
-                                diceTimer.stop();
-                                isDiceRolling = false;
-
-                                jLabel1.setIcon(icon1);
-
-                                // 骰子动画结束，启动行走动画
-                                currentPlayer.startWalk(diceValue);
-
-                                Timer walkTimer = new Timer(200, evt2 -> {
-                                    boolean done = currentPlayer.advanceOneStep();
-                                    actorLayer.repaint();
-
-                                    if (done) {
-                                        ((Timer) evt2.getSource()).stop();
-                                        currentPlayer.resetWalkFrame();
-                                        actorLayer.repaint();
-
-                                        if (tiles[currentPlayer.getPositionIndex()].getTileType() == TileType.PROPERTY)
-                                        {
-                                            int result = JOptionPane.showOptionDialog(
-                                                    null,
-                                                    "购买当前房产？价格是" + ((Land) tiles[currentPlayer.getPositionIndex()]).getPrice() ,
-                                                    "确认",
-                                                    JOptionPane.YES_NO_CANCEL_OPTION,
-                                                    JOptionPane.QUESTION_MESSAGE,
-                                                    null,
-                                                    new String[]{"确定", "取消"}, // 自定义按钮
-                                                    "确定"
-                                            );
-                                            if (result == 0) {
-                                                System.out.println("用户点了确定");
-                                            }
-                                        }
-
-                                        nextPlayer();
-                                    }
-                                });
-                                walkTimer.start();
-                            }
-                        });
+                        renderDiceAnim(jLabel1, icon1);
                         diceTimer.start();
 
 
@@ -388,6 +340,59 @@ public class MainMap extends JFrame
 
         uiLayer.add(jLabel1);
 
+    }
+
+    /**
+     * 功能描述：开始骰子动画
+     * @author cyt
+     * @date 2026/5/18 13:53
+     */
+    private void renderDiceAnim(JLabel jLabel1, ImageIcon icon1)
+    {
+        diceTimer = new Timer(80,evt ->
+        {
+            currentDiceFrame++;
+            actorLayer.repaint();
+
+            if(currentDiceFrame >= 8)
+            {
+                diceTimer.stop();
+                isDiceRolling = false;
+
+                jLabel1.setIcon(icon1);
+
+                // 骰子动画结束，启动行走动画
+                currentPlayer.startWalk(diceValue);
+
+                Timer walkTimer = new Timer(200, evt2 -> {
+                    boolean done = currentPlayer.advanceOneStep();
+                    actorLayer.repaint();
+
+                    if (done) {
+                        ((Timer) evt2.getSource()).stop();
+                        currentPlayer.resetWalkFrame();
+                        actorLayer.repaint();
+
+                        buyLand();
+
+                        nextPlayer();
+                    }
+                });
+                walkTimer.start();
+            }
+        });
+    }
+
+    private void buyLand()
+    {
+        if (tiles[currentPlayer.getPositionIndex()].getTileType() == null)
+            return;
+        if (tiles[currentPlayer.getPositionIndex()].getTileType() == TileType.PROPERTY)
+        {
+            Land land = (Land) tiles[currentPlayer.getPositionIndex()];
+                land.onPlayerArrive(currentPlayer);
+                actorLayer.repaint();
+        }
     }
 
     /**
@@ -489,20 +494,24 @@ public class MainMap extends JFrame
         }
     }
 
+
+
+
     /**
-     * 功能描述：渲染单个地产的房屋(有人)
+     * 功能描述：AI 提取的简化方法
      * @author cyt
-     * @date 2026/5/17
+     * @date 2026/5/17 22:15
      */
-    private void renderBuildingForLand(Graphics g, Land land) {
-        Point position = land.getPosition();
-        if (position == null) return;
+    private void renderLand(Graphics g, Land land) {
+        if (land.getOwner() != null) {
+            Point position = land.getPosition();
+            if (position == null) return;
 
-        int x = (int) position.getX();
-        int y = (int) position.getY();
+            int x = (int) position.getX();
+            int y = (int) position.getY();
 
 
-            ImageIcon buildingIcon = naiLongLand[3];
+            ImageIcon buildingIcon = naiLongLand[2];
             Image buildingImage = buildingIcon.getImage();
 
             // 调整房屋显示位置（可能需要偏移以居中显示在格子上）
@@ -515,51 +524,30 @@ public class MainMap extends JFrame
                     buildingWidth,
                     buildingHeight,
                     null);
-
-    }
-
-    /**
-     * 功能描述：没人的地产
-     * @author cyt
-     * @date 2026/5/17 22:27
-     */
-    public void renderBuidingForNull(Graphics g,Land land)
-    {
-        Point point = land.getPosition();
-        if (point == null) return;
-
-        int x = (int) point.getX();
-        int y = (int) point.getY();
-
-        Image unsoldImage = new ImageIcon("src/img/architecture/小地未售2.png").getImage();
-        Image unsoldImage2 = new ImageIcon("src/img/architecture/大地未售2.png").getImage();
-        Image unsoldImage4 = new ImageIcon("src/img/architecture/大地未售.png").getImage();
-        Image unsoldImage3 = new ImageIcon("src/img/architecture/小地未售.png").getImage();
-
-        int index = land.getPositionIndex();
-
-        if (index == 5) {
-            g.drawImage(unsoldImage2, x, y, null);
-        } else if (index == 11 || index == 26) {
-            g.drawImage(unsoldImage4, x, y, null);
-        } else if ((index >= 2 && index <= 5) || (index >= 17 && index <= 20)) {
-            g.drawImage(unsoldImage, x, y, null);
-        } else if ((index >= 10 && index <= 13) || (index >= 25 && index <= 28)) {
-            g.drawImage(unsoldImage3, x, y, null);
-        }
-
-    }
-
-    /**
-     * 功能描述：AI 提取的简化方法
-     * @author cyt
-     * @date 2026/5/17 22:15
-     */
-    private void renderLand(Graphics g, Land land) {
-        if (land.getOwner() != null) {
-            renderBuildingForLand(g, land);
         } else {
-            renderBuidingForNull(g, land);
+            Point point = land.getPosition();
+            if (point == null) return;
+
+            int x = (int) point.getX();
+            int y = (int) point.getY();
+
+            Image unsoldImage = new ImageIcon("src/img/architecture/小地未售2.png").getImage();
+            Image unsoldImage2 = new ImageIcon("src/img/architecture/大地未售2.png").getImage();
+            Image unsoldImage4 = new ImageIcon("src/img/architecture/大地未售.png").getImage();
+            Image unsoldImage3 = new ImageIcon("src/img/architecture/小地未售.png").getImage();
+
+            int index = land.getPositionIndex();
+
+            if (index == 5) {
+                g.drawImage(unsoldImage2, x, y, null);
+            } else if (index == 11 || index == 26) {
+                g.drawImage(unsoldImage4, x, y, null);
+            } else if ((index >= 2 && index <= 5) || (index >= 17 && index <= 20)) {
+                g.drawImage(unsoldImage, x, y, null);
+            } else if ((index >= 10 && index <= 13) || (index >= 25 && index <= 28)) {
+                g.drawImage(unsoldImage3, x, y, null);
+            }
+
         }
     }
 

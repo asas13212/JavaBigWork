@@ -9,9 +9,10 @@ public class Prison extends Tile
 
     private int duration = 2;
 
-    public Prison(int positionIndex, TileType tileType, Point position, String name)
+    public Prison(int positionIndex, Point position, String name)
     {
-        super(positionIndex, tileType, position, name);
+        super(positionIndex, position, name);
+        this.tileType = TileType.PRISON;
     }
 
     @Override

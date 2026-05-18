@@ -7,26 +7,25 @@ import java.awt.*;
 
 public abstract class Tile
 {
-    private int positionIndex;
+    protected int positionIndex;
 
-    private TileType tileType;
+    protected TileType tileType;
 
-    public Point position;
+    protected Point position;
 
-    private String name;
+    protected String name;
 
+    protected boolean hasMine = false;
 
-    private boolean hasMine = false;
+    protected boolean hasBarrier = false;
 
-    private boolean hasBarrier = false;
-
-    public Tile(int positionIndex, TileType tileType, Point position, String name)
+    public Tile(int positionIndex, Point position, String name)
     {
         this.positionIndex = positionIndex;
-        this.tileType = tileType;
         this.position = position;
         this.name = name;
     }
+
 
     public Tile()
     {

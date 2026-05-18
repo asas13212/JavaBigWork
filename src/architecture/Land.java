@@ -1,26 +1,34 @@
 package architecture;
 
 import main.*;
+
+import javax.swing.*;
 import java.awt.*;
 
-public class Land extends Tile
+public abstract class Land extends Tile
 {
     private Player owner;
 
-    private int houseLevel;
+    private int houseLevel = 0;
 
-    private int oneLevelPrice;
+    // 过路费
+    public int[] tax;
 
-    private int twoLevelPrice;
+    // 升级费用
+    protected int[] priceLevelUp;
 
-    private int price;
+    protected int maxLevel;
+
+    protected Image[] naiLong;
+    protected Image[] xiaoMei;
 
 
-    public Land(int positionIndex, TileType tileType, Point position, String name,int price)
+    public Land(int positionIndex, Point position, String name)
     {
-        super(positionIndex, tileType, position, name);
+        super(positionIndex, position, name);
         this.houseLevel = 0;
-        this.price = price;
+        this.tileType = TileType.PROPERTY;
+
     }
 
     @Override
@@ -28,29 +36,49 @@ public class Land extends Tile
     {
         if (this.owner == null)
         {
-            System.out.println("可以购买该地产");
-            player.BuyLand(this);
-            player.moneyDecrease(price);
+            int result = JOptionPane.showOptionDialog(
+                    null,
+                    "购买当前房产:" + this.getName()  +"? 价格是" + this.getCurrentPrice() ,
+                    "确认",
+                    JOptionPane.YES_NO_CANCEL_OPTION,
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    new String[]{"确定", "取消"}, // 自定义按钮
+                    "确定"
+            );
+            if ( result == 0 )
+            {
+                if (player.getMoney() >= priceLevelUp[houseLevel])
+                {
+                    player.moneyDecrease(priceLevelUp[houseLevel]);
+                    this.setOwner(player);
+                }else
+                {
+                    JOptionPane.showMessageDialog(null,"你没资格啊没资格");
+                }
+            }
+
         }else if ( owner != player){
-            System.out.println("不是自己地产，应该交租了");
+            JOptionPane.showMessageDialog(null, "交付" + tax[houseLevel], "到了" + player.getOtherPlayerName() + "的领地", JOptionPane.INFORMATION_MESSAGE);
+            player.moneyDecrease(tax[houseLevel]);
         }else {
-            System.out.println("到了自己地产");
+            // 升级逻辑
         }
     }
 
 
-    void landLevelUp(Player owner)
+    protected void landLevelUp(Player owner)
     {
         if(houseLevel == ConstantNum.MAX_LEVEL )
             return;
 
         if (houseLevel == 0)
         {
-            owner.moneyDecrease(oneLevelPrice);
+            owner.moneyDecrease(priceLevelUp[houseLevel]);
             houseLevel++;
         }else if (houseLevel == 1)
         {
-            owner.moneyDecrease(twoLevelPrice);
+            owner.moneyDecrease(priceLevelUp[houseLevel]);
             houseLevel++;
         }
 
@@ -66,8 +94,23 @@ public class Land extends Tile
         return houseLevel;
     }
 
-    public int getPrice()
+    public void setOwner(Player owner)
     {
-        return price;
+        this.owner = owner;
+    }
+
+    /**
+     * 功能描述：这里是需要升级的钱
+     * @author cyt
+     * @date 2026/5/18 21:08
+     */
+    public int getCurrentPrice()
+    {
+        return priceLevelUp[houseLevel];
+    }
+
+    public void houseLevelUp()
+    {
+        this.houseLevel++;
     }
 }

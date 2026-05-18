@@ -53,6 +53,7 @@ public class Player
 
     private Timer walkTimer;
 
+    private Player other;
 
     private boolean isMoving;
     /**
@@ -163,10 +164,6 @@ public class Player
         money -= num;
     }
 
-    public void BuyLand(Tile tile)
-    {
-        tilesOwned.add(tile);
-    }
 
     /**
      * 功能描述：导入贴图
@@ -287,6 +284,16 @@ public class Player
      * @date 2026/5/16 19:47
      */
     public void resetWalkFrame() { this.walkFrame = 0; }
+
+    public String getOtherPlayerName()
+    {
+        return other.getName();
+    }
+
+    public void setOtherPlayer(Player other)
+    {
+        this.other = other;
+    }
 
     //<editor-fold desc="一些getter与getter方法">
 
