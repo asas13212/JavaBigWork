@@ -10,8 +10,8 @@ public class HotelLand extends Land
     {
         super(positionIndex, position, name);
         this.maxLevel = 4;
-        this.tax = new int[]{3000,4500,5000,6800,8000};
-        this.priceLevelUp = new int[]{1400,2000,3000,3000,5000};
+        this.priceLevelUp = new int[]{3000,4500,5000,6800,8000};
+        this.tax = new int[]{400,1000,3000,3000,5000};
         this.naiLong = new Image[]{
           new ImageIcon("/src/img/architecture/naiLong/旅馆1（蓝色）.png").getImage(),
           new ImageIcon("/src/img/architecture/naiLong/旅馆2（蓝色）.png").getImage(),

@@ -101,27 +101,6 @@ public class Player
                 null);
     }
 
-    /**
-     * 功能描述：传入精灵表,让构造方法里面清新一点
-     * @author cyt
-     * @date 2026/5/14 16:05
-     */
-    private static void loadSprites(Player naiLong, Player xiaoMei)
-    {
-        naiLong.setMoveSprites(new String[]{
-                "src/img/player/男1.png",
-                "src/img/player/男2.png",
-                "src/img/player/男3.png",
-                "src/img/player/男4.png"
-        });
-
-        xiaoMei.setMoveSprites(new String[]{
-                "src/img/player/女1.png",
-                "src/img/player/女2.png",
-                "src/img/player/女3.png",
-                "src/img/player/女4.png",
-        });
-    }
 
     /**
      * 功能描述：道具的使用逻辑
@@ -162,6 +141,10 @@ public class Player
     public void moneyDecrease(int num)
     {
         money -= num;
+        if (money < 0)
+        {
+            new Win(this);
+        }
     }
 
 
@@ -238,6 +221,8 @@ public class Player
 
         walkFrame++;
         positionIndex = (positionIndex + 1) % mapPoints.length;
+        if(positionIndex == 0)
+            this.money += ConstantNum.START_MONEY;
         if ( positionIndex >= 0 && positionIndex <= 8){
             moveTowards = 1;
         }else if (positionIndex >= 9 && positionIndex <= 15) {
@@ -295,6 +280,11 @@ public class Player
         this.other = other;
     }
 
+    public int getProperty()
+    {
+        return this.tilesOwned.toArray().length;
+    }
+
     //<editor-fold desc="一些getter与getter方法">
 
 
@@ -303,9 +293,9 @@ public class Player
         this.mapPoints = mapPoints;
     }
 
-    public void setTilesOwned(ArrayList<Tile> tilesOwned)
+    public void addTilesOwned(Tile tile)
     {
-        this.tilesOwned = tilesOwned;
+        this.tilesOwned.add(tile);
     }
 
     public int getPrisonRound()

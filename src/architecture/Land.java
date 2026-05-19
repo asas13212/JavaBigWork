@@ -22,6 +22,10 @@ public abstract class Land extends Tile
     protected Image[] naiLong;
     protected Image[] xiaoMei;
 
+    protected int offSetX;
+    protected int offSetY;
+
+
 
     public Land(int positionIndex, Point position, String name)
     {
@@ -52,6 +56,7 @@ public abstract class Land extends Tile
                 {
                     player.moneyDecrease(priceLevelUp[houseLevel]);
                     this.setOwner(player);
+                    player.addTilesOwned(this);
                 }else
                 {
                     JOptionPane.showMessageDialog(null,"你没资格啊没资格");
@@ -61,8 +66,31 @@ public abstract class Land extends Tile
         }else if ( owner != player){
             JOptionPane.showMessageDialog(null, "交付" + tax[houseLevel], "到了" + player.getOtherPlayerName() + "的领地", JOptionPane.INFORMATION_MESSAGE);
             player.moneyDecrease(tax[houseLevel]);
+            owner.moneyIncrease(tax[houseLevel]);
         }else {
             // 升级逻辑
+            if (houseLevel >= maxLevel) return;
+            int result = JOptionPane.showOptionDialog(
+                    null,
+                    "升级当前房产:" + this.getName()  +"? 价格是" + (this.priceLevelUp[houseLevel+1]) ,
+                    "确认",
+                    JOptionPane.YES_NO_CANCEL_OPTION,
+                    JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    new String[]{"确定", "取消"}, // 自定义按钮
+                    "确定"
+            );
+            if (result == 0)
+            {
+                if (player.getMoney() >= priceLevelUp[houseLevel+1])
+                {
+                    player.moneyDecrease(priceLevelUp[houseLevel+1]);
+                    this.houseLevel++;
+                }else
+                {
+                    JOptionPane.showMessageDialog(null,"你没资格啊没资格");
+                }
+            }
         }
     }
 
@@ -72,15 +100,7 @@ public abstract class Land extends Tile
         if(houseLevel == ConstantNum.MAX_LEVEL )
             return;
 
-        if (houseLevel == 0)
-        {
-            owner.moneyDecrease(priceLevelUp[houseLevel]);
-            houseLevel++;
-        }else if (houseLevel == 1)
-        {
-            owner.moneyDecrease(priceLevelUp[houseLevel]);
-            houseLevel++;
-        }
+
 
     }
 
@@ -112,5 +132,23 @@ public abstract class Land extends Tile
     public void houseLevelUp()
     {
         this.houseLevel++;
+    }
+
+    public Image[] getNaiLongImg(){
+        return naiLong;
+    }
+
+    public Image[] getXiaoMeiImg(){
+        return xiaoMei;
+    }
+
+    public int getOffSetX()
+    {
+        return offSetX;
+    }
+
+    public int getOffSetY()
+    {
+        return offSetY;
     }
 }

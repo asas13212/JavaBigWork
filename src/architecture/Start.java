@@ -16,6 +16,5 @@ public class Start extends Tile
     @Override
     public void onPlayerArrive(Player player)
     {
-
     }
 }
