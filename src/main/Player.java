@@ -1,6 +1,6 @@
 package main;
 
-import architecture.Tile;
+import architecture.Land;
 import props.Props;
 
 import javax.swing.*;
@@ -44,7 +44,7 @@ public class Player
     private Point[] mapPoints;
 
     // 拥有的地产
-    private ArrayList<Tile> tilesOwned;
+    private ArrayList<Land> landOwned;
 
     // 剩余步数
     private int stepsRemaining;
@@ -55,6 +55,8 @@ public class Player
 
     private Player other;
 
+    private boolean isInToxic = false;
+
     private boolean isMoving;
     /**
      * 功能描述：玩家的初始化方法
@@ -64,7 +66,7 @@ public class Player
     public Player(int positionIndex, String name,Point srcPosition)
     {
         this.random = new Random();
-        tilesOwned = new ArrayList<>();
+        landOwned = new ArrayList<>();
         this.positionIndex = positionIndex;
         this.name = name;
         this.setMoney(ConstantNum.PLAYER_MONEY);
@@ -183,27 +185,7 @@ public class Player
      */
     public int rollDice()
     {
-        int rollDice = random.nextInt(0,6) + 1;
-        return rollDice;
-    }
-
-    public void move(int steps){
-        int newIndex = (this.positionIndex + steps) % mapPoints.length;
-
-        if ( newIndex >= 0 && newIndex <= 8){
-            moveTowards = 1;
-        }else if (newIndex >= 9 && newIndex <= 15) {
-            moveTowards = 2;
-        }else if (newIndex >= 16 && newIndex <= 23){
-            moveTowards = 3;
-        }else {
-            moveTowards = 4;
-        }
-
-        this.positionIndex = newIndex;
-        // 如果后续有代码改了 Points值，这里有影响
-        this.position = new Point(mapPoints[newIndex]);
-
+        return random.nextInt(0,6) + 1;
     }
 
     /**
@@ -222,7 +204,10 @@ public class Player
         walkFrame++;
         positionIndex = (positionIndex + 1) % mapPoints.length;
         if(positionIndex == 0)
+            // 起点加钱
             this.money += ConstantNum.START_MONEY;
+
+        // 改贴图方向
         if ( positionIndex >= 0 && positionIndex <= 8){
             moveTowards = 1;
         }else if (positionIndex >= 9 && positionIndex <= 15) {
@@ -282,7 +267,7 @@ public class Player
 
     public int getProperty()
     {
-        return this.tilesOwned.toArray().length;
+        return this.landOwned.toArray().length;
     }
 
     //<editor-fold desc="一些getter与getter方法">
@@ -293,9 +278,14 @@ public class Player
         this.mapPoints = mapPoints;
     }
 
-    public void addTilesOwned(Tile tile)
+    public void addTilesOwned(Land land)
     {
-        this.tilesOwned.add(tile);
+        this.landOwned.add(land);
+    }
+
+    public Land getLandOwned(int num)
+    {
+        return landOwned.get(num);
     }
 
     public int getPrisonRound()
@@ -418,6 +408,15 @@ public class Player
         this.staticSprite = staticSprite;
     }
 
+    public void setInToxic(boolean inToxic)
+    {
+        isInToxic = inToxic;
+    }
+
+    public boolean isInToxic()
+    {
+        return isInToxic;
+    }
 
     //</editor-fold>
 

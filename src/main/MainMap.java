@@ -19,6 +19,7 @@ public class MainMap extends JFrame
     Player currentPlayer;
     ImageIcon[] diceImg;
     Timer diceTimer;
+    Timer walkTimer;
     boolean isDiceRolling = false;
     int currentDiceFrame = 0;
     int diceValue;
@@ -26,12 +27,6 @@ public class MainMap extends JFrame
     private int currentPlayerIndex = 0;
     Player[] players;
     static int round = 0;
-
-    public ImageIcon[] naiLongLand =
-    {
-        null,null,new ImageIcon("src/img/architecture/naiLong/red22")
-    };
-
 
     public Point[] points
     //<editor-fold desc="直接copy过来">
@@ -48,37 +43,37 @@ public class MainMap extends JFrame
     Tile[] tiles = {
     //<editor-fold desc="初始化">
             new Start(new Point()),
-            new Event(1, new Point(), "公园"),
-            new ResidentLand(2, new Point(280, 375), "体育馆"),
-            new ResidentLand(3, new Point(350, 325), "旅馆"),
-            new ResearchLand(4, new Point(420, 275), "研究所"),
-            new HotelLand(5, new Point(415, 165), "研究所"),
+            new Event(1, new Point(), "小吃街"),
+            new ResidentLand(2, new Point(280, 375), "居民楼1"),
+            new ResidentLand(3, new Point(350, 325), "居民楼2"),
+            new GymLand(4, new Point(420, 275), "体育馆1"),
+            new HotelLand(5, new Point(415, 165), "旅馆"),
             new Empty(),
             new Chance(7,  new Point(), "抽卡点"),
             new Shop(8, new Point(), "商店"),
 
             new Hospital(9, new Point(), "医院"),
-            new ResidentLand(10,  new Point(960, 185), "体育馆"),
-            new ParkLand(11,  new Point(1026, 210), "小医院"),
+            new ResidentLand(10,  new Point(960, 185), "居民楼3"),
+            new ParkLand(11,  new Point(1026, 210), "公园"),
             new Empty(),
-            new ResidentLand(13, new Point(1160, 330), "居民楼3"),
-            new Event(14, new Point(), "公园2"),
+            new ResidentLand(13, new Point(1160, 330), "居民楼4"),
+            new Event(14, new Point(), "市民公园"),
             new Prison(15, new Point(), "牢中"),
 
             new Chance(16, new Point(), "抽卡点2"),
-            new GymLand(17, new Point(1028, 518), "暂定1"),
-            new ResidentLand(18, new Point(958, 568), "暂定2"),
-            new ResidentLand(19, new Point(958 - 70, 618), "暂定3"),
-            new ResidentLand(20, new Point(958 - 140, 668), "暂定4"),
+            new GymLand(17, new Point(1028, 518), "体育馆2"),
+            new ResidentLand(18, new Point(958, 568), "居民楼5"),
+            new ResidentLand(19, new Point(958 - 70, 618), "居民楼6"),
+            new ResidentLand(20, new Point(958 - 140, 668), "居民楼7"),
             new Hospital(21, new Point(), "医院2"),
             new Chance(22,  new Point(), "抽卡点3"),
-            new Event(23,  new Point(), "公园"),
+            new Event(23,  new Point(), "上饶中学"),
             new Empty(),
 
-            new ResidentLand(25,  new Point(620, 715), "暂定5"),
-            new ShopLand(26,  new Point(483, 600), "暂定6"),
+            new ResidentLand(25,  new Point(620, 715), "居民楼8"),
+            new ShopLand(26,  new Point(483, 600), "超市"),
             new Empty(),
-            new ResidentLand(28,  new Point(419, 570), "暂定8"),
+            new ResidentLand(28,  new Point(419, 570), "居民楼9"),
             new Empty()
     };
     //</editor-fold>
@@ -100,12 +95,6 @@ public class MainMap extends JFrame
             }
         });
         init();
-
-        loadPlayerAndImg();
-
-
-
-        startGameLoop();
 
 
     }
@@ -166,6 +155,7 @@ public class MainMap extends JFrame
      */
     private void init()
     {
+        // 创建玩家数组与骰子数组
         players = new Player[2];
         diceImg = new ImageIcon[6];
         for (int i = 0; i < diceImg.length; i++)
@@ -177,6 +167,25 @@ public class MainMap extends JFrame
         this.setSize(ConstantNum.MAP_WIDTH, ConstantNum.MAP_HEIGHT);
         this.setLayout(null);
 
+        renderThreeLayers();
+
+        loadPlayerAndImg();
+
+        addUiDice();
+
+        initTeleportButtons();
+
+        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+        this.setVisible(true);
+    }
+
+    /**
+     * 功能描述：渲染三个主要层级
+     * @author cyt
+     * @date 2026/5/20 14:07
+     */
+    private void renderThreeLayers()
+    {
         // 使用JLayeredPane实现分层
         layered = new JLayeredPane();
         layered.setBounds(0, 0, ConstantNum.MAP_WIDTH, ConstantNum.MAP_HEIGHT);
@@ -186,20 +195,21 @@ public class MainMap extends JFrame
         bgLayer = new JLabel(new ImageIcon("src/img/map/MainMap.png"));
         bgLayer.setBounds(0,0, ConstantNum.MAP_WIDTH, ConstantNum.MAP_HEIGHT);
 
-        // uiLayer层
+        // uiLayer层 ---- 显示玩家信息
         uiLayer = new JPanel(null){
             @Override
             public void paintComponent(Graphics g)
             {
-
                 // 清空了上一次绘画东西
                 super.paintComponent(g);
-                g.drawImage(new ImageIcon("src/img/player/naiLong3.png").getImage(), 10, 60, 340, 110, null);
-                g.drawImage(new ImageIcon("src/img/player/xiaoMei3.png").getImage(), 10, 200, 340, 110, null);
+                g.drawImage(new ImageIcon("src/img/player/naiLong4.png").getImage(), 10, 60, 340, 110, null);
+                g.drawImage(new ImageIcon("src/img/player/xiaoMei4.png").getImage(), 10, 200, 340, 110, null);
                 String naiLongMoney = Integer.toString(naiLong.getMoney());
                 String xiaoMeiMoney = Integer.toString(xiaoMei.getMoney());
                 String naiLongProperty = Integer.toString(naiLong.getProperty());
                 String xiaoMeiProperty = Integer.toString(xiaoMei.getProperty());
+                String naiLongHp = Integer.toString(naiLong.getHp());
+                String xiaoMeiHp = Integer.toString(xiaoMei.getHp());
 
                 Font font = new Font("微软雅黑",Font.BOLD,14);
                 g.setFont(font);
@@ -208,11 +218,13 @@ public class MainMap extends JFrame
                 g.drawString(xiaoMeiMoney,200,242);
                 g.drawString(naiLongProperty,240,145);
                 g.drawString(xiaoMeiProperty,240,288);
-
+                g.drawString(naiLongHp,210,123);
+                g.drawString(xiaoMeiHp,210,263);
             }
         };
         uiLayer.setOpaque(false);
         uiLayer.setBounds(0,0, ConstantNum.MAP_WIDTH, ConstantNum.MAP_HEIGHT);
+
 
         // tileLayer层
         tileLayer = new JPanel(null){
@@ -226,7 +238,8 @@ public class MainMap extends JFrame
         tileLayer.setOpaque(false);
         tileLayer.setBounds(0,0, ConstantNum.MAP_WIDTH, ConstantNum.MAP_HEIGHT);
 
-        // actorLayer层
+
+        // actorLayer层 --- 负责绘画玩家与骰子
         actorLayer = new JPanel(null) {
             // 这里在创建刷新都会自动调用
             @Override
@@ -272,7 +285,6 @@ public class MainMap extends JFrame
 
             }
         };
-
         actorLayer.setOpaque(false);
         actorLayer.setBounds(0,0, ConstantNum.MAP_WIDTH, ConstantNum.MAP_HEIGHT);
 
@@ -286,28 +298,24 @@ public class MainMap extends JFrame
         layered.add(actorLayer);
         layered.add(uiLayer);
 
+        // 必备的检验方法
         tileLayer.revalidate();
         tileLayer.repaint();
-
-        addUiDice();
-
-        initTeleportButtons();
-
-        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
-        this.setVisible(true);
     }
 
 
     /**
-     * 功能描述：添加ui界面的骰子并启动动画
+     * 功能描述：添加ui界面的骰子并启动动画 --- 主逻辑开始
      * @author cyt
      * @date 2026/5/16 19:41
      */
     private void addUiDice()
     {
+        // 点击骰子的图片
         ImageIcon icon1 = new ImageIcon("src/img/dice/vv.png");
         ImageIcon icon2 = new ImageIcon("src/img/dice/cc.png");
 
+        // 触发逻辑的图片按钮
         JLabel jLabel1 = new JLabel(icon1);
 
         jLabel1.setBounds(ConstantNum.DICE_POSITION_X,ConstantNum.DICE_POSITION_Y, 150,129);
@@ -347,7 +355,8 @@ public class MainMap extends JFrame
                         renderDiceAnim(jLabel1, icon1);
                         diceTimer.start();
 
-
+                        if (currentPlayer.isInToxic())
+                            currentPlayer.hpDecrease(3);
                         roundIncrease();
                     }
 
@@ -394,23 +403,70 @@ public class MainMap extends JFrame
                 // 骰子动画结束，启动行走动画
                 currentPlayer.startWalk(diceValue);
 
-                Timer walkTimer = new Timer(200, evt2 -> {
-                    boolean done = currentPlayer.advanceOneStep();
-                    tileLayer.repaint();
-                    actorLayer.repaint();
+                // 开始本次“走路动画”，结束后处理格子效果（可能会继续触发走路）
+                startWalkAnimation(this::afterMoveResolveTile);
 
-                    if (done) {
-                        ((Timer) evt2.getSource()).stop();
-                        refreshLayers();
-
-                        buyLand();
-
-                        nextPlayer();
-                    }
-                });
-                walkTimer.start();
             }
         });
+    }
+
+
+    /**
+     * 功能描述：启动当前玩家的走路动画（Timer 驱动 advanceOneStep）
+     * 注意：不要在 Tile/Event 里自己创建 walkTimer；统一由 MainMap 控制。
+     * @author cyt
+     * @date 2026/5/20
+     */
+    private void startWalkAnimation(Runnable onFinished)
+    {
+        // 防止重复开多个 walkTimer
+        if (walkTimer != null && walkTimer.isRunning())
+        {
+            walkTimer.stop();
+        }
+
+        walkTimer = new Timer(200, evt -> {
+            boolean done = currentPlayer.advanceOneStep();
+            refreshLayers();
+
+            if (done)
+            {
+                ((Timer) evt.getSource()).stop();
+                // 重置走路帧
+                currentPlayer.resetWalkFrame();
+                refreshLayers();
+
+                if (onFinished != null)
+                {
+                    onFinished.run();
+                }
+            }
+        });
+
+        walkTimer.start();
+    }
+
+
+    /**
+     * 功能描述：一次移动结束后，触发当前格子的到达效果。
+     * 如果格子效果里调用了 player.startWalk(n)，这里会继续走路动画；否则结束回合。
+     * @author cyt
+     * @date 2026/5/20
+     */
+    private void afterMoveResolveTile()
+    {
+        onArrive();
+
+        // Event 等格子可能会调用 startWalk 再走几步（比如顺风车事件）
+        if (currentPlayer.isWalking())
+        {
+            // 牛逼，这我学个毛
+            startWalkAnimation(this::afterMoveResolveTile);
+            return;
+        }
+
+        // 没有额外移动了，回合结束
+        nextPlayer();
     }
 
 
@@ -432,25 +488,11 @@ public class MainMap extends JFrame
      * @author cyt
      * @date 2026/5/19 12:26
      */
-    private void buyLand()
+    private void onArrive()
     {
-        if (tiles[currentPlayer.getPositionIndex()].getTileType() == TileType.PROPERTY)
-        {
-            Land land = (Land) tiles[currentPlayer.getPositionIndex()];
-                land.onPlayerArrive(currentPlayer);
-                refreshLayers();
-        }
-    }
-
-
-    /**
-     * 功能描述：开始游戏循环
-     * @author cyt
-     * @date 2026/5/16 19:43
-     */
-    private void startGameLoop()
-    {
-        updateGameUI();
+        Tile tile = tiles[currentPlayer.getPositionIndex()];
+        tile.onPlayerArrive(currentPlayer);
+        refreshLayers();
     }
 
 
@@ -475,18 +517,6 @@ public class MainMap extends JFrame
     {
         currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
         currentPlayer = players[currentPlayerIndex];
-        updateGameUI();
-        handlePlayerTurn();
-    }
-
-
-    /**
-     * 功能描述：更新ui
-     * @author cyt
-     * @date 2026/5/16 19:43
-     */
-    private void updateGameUI(){
-
     }
 
 
@@ -554,26 +584,45 @@ public class MainMap extends JFrame
      */
     private void renderLand(Graphics g, Land land) {
         if (land.getOwner() != null) {
-                 int x = (int) land.getPosition().getX();
-                 int y = (int) land.getPosition().getY();
+                 int x = (int) land.getPosition().getX() + land.getOffSetX();
+                 int y = (int) land.getPosition().getY() + land.getOffSetY();
             Image[] images;
             if( land.getOwner().equals(naiLong)) {images = land.getNaiLongImg();}
             else {images = land.getXiaoMeiImg();}
 
             int s = land.getPositionIndex();
             if (!( s==5 || s==4 || s==11 || s==26 || s==17 )){
-
+                int imgX = images[land.getHouseLevel()].getWidth(null);
+                int imgY = images[land.getHouseLevel()].getHeight(null);
                 g.drawImage(
                         images[land.getHouseLevel()],
-                        x + land.getOffSetX(),y + land.getOffSetY(),
+                        x + 130 - imgX,y - imgY + 100 ,
                         null
                 );
             } else if ( s==4 || s==17 ){
                 g.drawImage(
                   images[land.getHouseLevel()],
-                  x + land.getOffSetX(),y + land.getOffSetY(),
+                  x + 5,y +10 ,
                   126,94,
                    null
+                );
+            }else if ( s==5 )
+            {
+                int imgX = images[land.getHouseLevel()].getWidth(null);
+                int imgY = images[land.getHouseLevel()].getHeight(null);
+                g.drawImage(
+                        images[land.getHouseLevel()],
+                        x - imgX + 270,y - imgY + 190,
+                        null
+                );
+            } else if ( s==11 || s== 26 )
+            {
+                int imgX = images[land.getHouseLevel()].getWidth(null);
+                int imgY = images[land.getHouseLevel()].getHeight(null);
+                g.drawImage(
+                        images[land.getHouseLevel()],
+                        x - imgX + 270,y - imgY + 190,
+                        null
                 );
             }
 
@@ -615,7 +664,7 @@ public class MainMap extends JFrame
     }
 
     /**
-     * 功能描述：创建传送按钮，让naiLong传送到指定位置
+     * 功能描述：AI 创建传送按钮，让naiLong传送到指定位置
      * @param targetIndex 目标位置的索引
      * @author cyt
      * @date 2026/5/19
@@ -643,12 +692,8 @@ public class MainMap extends JFrame
                 if (targetTile != null)
                 {
                     System.out.println("到达格子: " + targetTile.getName());
-
-                    if (targetTile instanceof Land land)
-                    {
-                        land.onPlayerArrive(naiLong);
-                        refreshLayers();
-                    }
+                    targetTile.onPlayerArrive(naiLong);
+                    refreshLayers();
                 }
             }
         });
@@ -659,12 +704,12 @@ public class MainMap extends JFrame
     }
 
     /**
-     * 功能描述：初始化传送按钮（可以调用多次创建多个按钮）
+     * 功能描述：AI 制作的调试工具，可以直接传到一个位置然后执行逻辑
      * @author cyt
      * @date 2026/5/19
      */
     private void initTeleportButtons()
     {
-        createTeleportButton(2);
+        createTeleportButton(1);
     }
 }

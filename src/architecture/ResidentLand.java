@@ -9,7 +9,7 @@ public class ResidentLand extends Land
     {
         super(positionIndex, position, name);
         this.maxLevel = 5; // 最高五级，最低0级
-        this.offSetX = 3;
+        this.offSetX = 1;
         this.offSetY = 20;
         this.priceLevelUp = new int[]{1500,1500,2000,2000,3000,5000};
         this.tax = new int[]{400,600,800,1600,3200,4800};

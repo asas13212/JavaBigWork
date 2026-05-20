@@ -94,16 +94,6 @@ public abstract class Land extends Tile
         }
     }
 
-
-    protected void landLevelUp(Player owner)
-    {
-        if(houseLevel == ConstantNum.MAX_LEVEL )
-            return;
-
-
-
-    }
-
     public Player getOwner()
     {
         return owner;
