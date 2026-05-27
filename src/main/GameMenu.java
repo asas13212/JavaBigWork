@@ -122,7 +122,7 @@ public class GameMenu extends JPanel
 
         for (int i = 0; i < img.length - 1; i++)
         {
-            jLabels[i+1].setBounds(150,115 + i * 65,110,60);
+            jLabels[i+1].setBounds(120,115 + i * 65,110,60);
             this.add(jLabels[i+1]);
 //            System.out.println(i + 2 + "张加载成功");
         }

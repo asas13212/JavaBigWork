@@ -14,7 +14,8 @@ public interface ConstantNum
      int MAP_HEIGHT = 1100;
      int MAP_WIDTH = 1500;
 
-     int PLAYER_MONEY = 220000;
+     // 初始资金与血量
+     int PLAYER_MONEY = 10000;
      int PLAYER_HP = 100;
 
      int MAX_LEVEL = 2;
@@ -22,12 +23,11 @@ public interface ConstantNum
      int DICE_POSITION_X = 1250;
      int DICE_POSITION_Y = 750;
 
-     Point DICE_POSITION = new Point(1100,650);
-
      int FRAME_WIDTH = 63;
      int FRAME_HEIGHT = 100;
 
-     int START_MONEY = 10000;
+     // 起点加钱数量
+     int START_MONEY = 2000;
 
 
 }

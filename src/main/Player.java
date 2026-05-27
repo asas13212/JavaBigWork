@@ -1,12 +1,14 @@
 package main;
 
 import architecture.Land;
-import props.Props;
+import props.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
+import java.util.function.IntPredicate;
 
 /**
  * 功能描述：玩家类
@@ -41,6 +43,8 @@ public class Player
 
     private int prisonRound;
 
+    private int barrierStopTurns = 0;
+
     private Point[] mapPoints;
 
     // 拥有的地产
@@ -51,13 +55,17 @@ public class Player
 
     private int walkFrame;
 
-    private Timer walkTimer;
-
     private Player other;
 
     private boolean isInToxic = false;
 
     private boolean isMoving;
+
+    private IntPredicate onBarrierPlace;
+
+    // 道具库存：用道具“名字”作为 key，避免 new 出来的 Prop 对象不一致导致数量回弹
+    private HashMap<String, Integer> propsCount;
+
     /**
      * 功能描述：玩家的初始化方法
      * @author cyt
@@ -67,14 +75,24 @@ public class Player
     {
         this.random = new Random();
         landOwned = new ArrayList<>();
+        propsCount = new HashMap<>();
         this.positionIndex = positionIndex;
         this.name = name;
+        this.position = srcPosition;
         this.setMoney(ConstantNum.PLAYER_MONEY);
         this.setHp(ConstantNum.PLAYER_HP);
         moveTowards = 1;
-        this.position = srcPosition;
 
+        this.addProp(new BaoZi());
+        this.addProp(new ExamWeek());
+        this.addProp(new Mine());
+        this.addProp(new Barrier());
+        this.addProp(new HouseLevelUp());
+        this.addProp(new Theft());
+        this.addProp(new Dice());
+        this.addProp(new IdCard());
     }
+
 
     /**
      * 功能描述：渲染静止状态方法
@@ -89,7 +107,11 @@ public class Player
             return;
 
         Image sheet = moveSprites[moveTowards - 1];
-        int maxFrames = sheet.getWidth(null) / ConstantNum.FRAME_WIDTH;
+        int w = sheet.getWidth(null);
+        if (w <= 0) return;
+        int maxFrames = w / ConstantNum.FRAME_WIDTH;
+        if (maxFrames == 0) return;
+
 
         int sx = (walkFrame % maxFrames) * ConstantNum.FRAME_WIDTH;  // 切第几帧
         int sy = 0;
@@ -109,9 +131,61 @@ public class Player
      * @author cyt
      * @date 2026/5/14 22:13
      */
-    private void use(Props props, Player target)
+    public void use(String propName, Player target)
     {
-        props.isUsed(target);
+        Prop lookup = switch (propName) {
+            case "包子"    -> new BaoZi();
+            case "考试周"  -> new ExamWeek();
+            case "地雷"    -> new Mine();
+            case "路障" -> {
+                Barrier b = new Barrier();
+                b.setOnPlace(index -> {
+                    boolean success = onBarrierPlace != null && onBarrierPlace.test(index);
+                    if (success) {
+                        Integer c = propsCount.get("路障");
+                        if (c != null) {
+                            if (c == 1) propsCount.remove("路障");
+                            else propsCount.put("路障", c - 1);
+                        }
+                    }
+                    return success;
+                });
+                yield b;
+            }
+            case "偷取"    -> new Theft();
+            case "万能骰子"-> new Dice();
+            case "升级卡"  -> new HouseLevelUp();
+            case "身份证"  -> new IdCard();
+            default   -> null;
+        };
+        if (lookup == null) return;
+
+        Integer count = propsCount.get(propName);
+        if (count == null || count <= 0) return;
+
+        int result = JOptionPane.showOptionDialog(
+                null,
+                lookup.getName() + ":" + lookup.getDescription() ,
+                "是否使用",
+                JOptionPane.YES_NO_CANCEL_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                new String[]{"确定", "取消"}, // 自定义按钮
+                "确定"
+        );
+        if ( result != 0 )
+            return;
+
+        lookup.isUsed(target);
+
+        // 路障在 onPlace 回调中自行扣除，此处跳过
+        if (lookup instanceof Barrier) return;
+
+        if (count == 1) {
+            propsCount.remove(propName);
+        } else {
+            propsCount.put(propName, count - 1);
+        }
     }
 
 
@@ -122,7 +196,12 @@ public class Player
      */
     public void hpDecrease(int num)
     {
+        System.out.println(this.getName() + "生命减少" + num);
         hp -= num;
+        if (hp < 0)
+        {
+            new Win(this);
+        }
     }
 
     /**
@@ -132,16 +211,30 @@ public class Player
      */
     public void hpIncrease(int num)
     {
+        System.out.println(this.getName() + "生命增加" + num);
         hp += num;
     }
 
+    /**
+     * 功能描述：加钱
+     * @author cyt
+     * @date 2026/5/26 21:51
+     */
     public void moneyIncrease(int num)
     {
+        System.out.println(this.getName() + "金钱增加" + num);
         money += num;
     }
 
+
+    /**
+     * 功能描述：减钱
+     * @author cyt
+     * @date 2026/5/26 21:51
+     */
     public void moneyDecrease(int num)
     {
+        System.out.println(this.getName() + "金钱减少" + num);
         money -= num;
         if (money < 0)
         {
@@ -270,6 +363,14 @@ public class Player
         return this.landOwned.toArray().length;
     }
 
+    @Override
+    public String toString()
+    {
+        return "Player{" +
+                "name='" + name + '\'' +
+                '}';
+    }
+
     //<editor-fold desc="一些getter与getter方法">
 
 
@@ -296,6 +397,16 @@ public class Player
     public void setPrisonRound(int prisonRound)
     {
         this.prisonRound = prisonRound;
+    }
+
+    public int getBarrierStopTurns()
+    {
+        return barrierStopTurns;
+    }
+
+    public void setBarrierStopTurns(int barrierStopTurns)
+    {
+        this.barrierStopTurns = barrierStopTurns;
     }
 
     public int getHp()
@@ -416,6 +527,28 @@ public class Player
     public boolean isInToxic()
     {
         return isInToxic;
+    }
+
+    public int getPropsNum()
+    {
+        return propsCount.size();
+    }
+
+    public HashMap<String, Integer> getProps()
+    {
+        return propsCount;
+    }
+
+    public void addProp(Prop prop)
+    {
+        if (prop == null || prop.getName() == null) return;
+        String name = prop.getName();
+        propsCount.put(name, propsCount.getOrDefault(name, 0) + 1);
+    }
+
+    public void setOnBarrierPlace(IntPredicate onBarrierPlace)
+    {
+        this.onBarrierPlace = onBarrierPlace;
     }
 
     //</editor-fold>

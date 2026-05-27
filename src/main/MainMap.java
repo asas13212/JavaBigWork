@@ -2,12 +2,13 @@ package main;
 
 import architecture.*;
 import architecture.Event;
-
+import debug.DebugTools;
+import props.Barrier;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
+import java.util.Map;
 
 public class MainMap extends JFrame
 {
@@ -20,6 +21,8 @@ public class MainMap extends JFrame
     ImageIcon[] diceImg;
     Timer diceTimer;
     Timer walkTimer;
+    ImageIcon[] props;
+    JLabel[] propJLabels;
     boolean isDiceRolling = false;
     int currentDiceFrame = 0;
     int diceValue;
@@ -48,14 +51,14 @@ public class MainMap extends JFrame
             new ResidentLand(3, new Point(350, 325), "居民楼2"),
             new GymLand(4, new Point(420, 275), "体育馆1"),
             new HotelLand(5, new Point(415, 165), "旅馆"),
-            new Empty(),
+            new Empty(6, new Point(), "空地"),
             new Chance(7,  new Point(), "抽卡点"),
             new Shop(8, new Point(), "商店"),
 
             new Hospital(9, new Point(), "医院"),
             new ResidentLand(10,  new Point(960, 185), "居民楼3"),
             new ParkLand(11,  new Point(1026, 210), "公园"),
-            new Empty(),
+            new Empty(12, new Point(), "空地"),
             new ResidentLand(13, new Point(1160, 330), "居民楼4"),
             new Event(14, new Point(), "市民公园"),
             new Prison(15, new Point(), "牢中"),
@@ -68,16 +71,15 @@ public class MainMap extends JFrame
             new Hospital(21, new Point(), "医院2"),
             new Chance(22,  new Point(), "抽卡点3"),
             new Event(23,  new Point(), "上饶中学"),
-            new Empty(),
+            new Empty(24, new Point(), "空地"),
 
             new ResidentLand(25,  new Point(620, 715), "居民楼8"),
             new ShopLand(26,  new Point(483, 600), "超市"),
-            new Empty(),
+            new Empty(27, new Point(), "空地"),
             new ResidentLand(28,  new Point(419, 570), "居民楼9"),
-            new Empty()
+            new Empty(29, new Point(), "空地")
     };
     //</editor-fold>
-
 
     /**
      * 功能描述：主地图的构造方法
@@ -86,52 +88,100 @@ public class MainMap extends JFrame
      */
     public MainMap()
     {
-        this.addMouseListener(new MouseAdapter()
-        {
-            @Override
-            public void mouseClicked(MouseEvent e)
-            {
-                System.out.println(e.getX() + "," + e.getY());
-            }
-        });
-        init();
+        // 导入调试包
+        DebugTools.install(this);
 
+        // 导入与创造道具图片
+        loadPropsAndImg();
 
+        // 导入玩家与其图片
+        loadPlayerImg();
+
+        // 渲染四个层级----背景层，瓦片层，玩家层，UI层
+        renderFourLayers();
+
+        // 设置当前的窗口的各类设置
+        this.setResizable(false);
+        this.setSize(ConstantNum.MAP_WIDTH, ConstantNum.MAP_HEIGHT);
+        this.setLayout(null);
+        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
+        this.setVisible(true);
     }
 
+
+    /**
+     * 功能描：导入道具
+     * @author cyt
+     * @date 2026/5/27 14:12
+     */
+    private void loadPropsAndImg()
+    {
+        props = new ImageIcon[8];
+        props[0] = new ImageIcon("src/img/props/baozi.png");
+        props[1] = new ImageIcon("src/img/props/exam_week.png");
+        props[2] = new ImageIcon("src/img/props/shoulei.png");
+        props[3] = new ImageIcon("src/img/props/gaijian.png");
+        props[4] = new ImageIcon("src/img/props/fail_exam.png");
+        props[5] = new ImageIcon("src/img/props/copy.png");
+        props[6] = new ImageIcon("src/img/props/gongren.png");
+        props[7] = new ImageIcon("src/img/props/pass.png");
+
+        propJLabels = new JLabel[8];
+
+        for (int i = 0; i < propJLabels.length; i++)
+        {
+            propJLabels[i] = new JLabel();
+            propJLabels[i].setIcon(props[i]);
+        }
+
+        propJLabels[0].setName("包子");
+        propJLabels[1].setName("考试周");
+        propJLabels[2].setName("地雷");
+        propJLabels[3].setName("路障");
+        propJLabels[4].setName("偷取");
+        propJLabels[5].setName("万能骰子");
+        propJLabels[6].setName("升级卡");
+        propJLabels[7].setName("身份证");
+    }
 
     /**
      * 功能描述：导入玩家
      * @author cyt
      * @date 2026/5/15 18:34
      */
-    private void loadPlayerAndImg()
+    private void loadPlayerImg()
     {
+        // 导入两个玩家
+        players = new Player[2];
         naiLong = new Player(0,"naiLong",points[0]);
         xiaoMei = new Player(0,"xiaoMei",points[0]);
         naiLong.setOtherPlayer(xiaoMei);
         xiaoMei.setOtherPlayer(naiLong);
+
+        // 回调注册
+        naiLong.setOnBarrierPlace(index -> {
+            if (tiles[index].hasBarrier()) {
+                JOptionPane.showMessageDialog(null, "该位置已有路障，无法重复放置！");
+                return false;
+            }
+            tiles[index].plantBarrier(Barrier.ROUND_LIFE);
+            refreshLayers();
+            return true;
+        });
+        xiaoMei.setOnBarrierPlace(index -> {
+            if (tiles[index].hasBarrier()) {
+                JOptionPane.showMessageDialog(null, "该位置已有路障，无法重复放置！");
+                return false;
+            }
+            tiles[index].plantBarrier(Barrier.ROUND_LIFE);
+            refreshLayers();
+            return true;
+        });
+
+        //TODO 玩家为传入位置，感觉这里可以回调解耦
         naiLong.setMapPoints(points);
         xiaoMei.setMapPoints(points);
-        loadSprites(naiLong, xiaoMei);
 
-        players[0] = naiLong;
-        players[1] = xiaoMei;
-
-        currentPlayer = players[currentPlayerIndex];
-
-        actorLayer.revalidate();
-        actorLayer.repaint();
-    }
-
-
-    /**
-     * 功能描述：传入精灵表,让构造方法里面清新一点
-     * @author cyt
-     * @date 2026/5/14 16:05
-     */
-    private static void loadSprites(Player naiLong, Player xiaoMei)
-    {
         naiLong.setMoveSprites(new String[]{
                 "src/img/player/男1.png",
                 "src/img/player/男2.png",
@@ -145,46 +195,22 @@ public class MainMap extends JFrame
                 "src/img/player/女3.png",
                 "src/img/player/女4.png",
         });
+
+        players[0] = naiLong;
+        players[1] = xiaoMei;
+
+        // 初始玩家是naiLong
+        currentPlayer = players[currentPlayerIndex];
+
     }
 
-
-    /**
-     * 功能描述：加上背景层、贴图层、uiLayer层
-     * @author cyt
-     * @date 2026/5/14 14:20
-     */
-    private void init()
-    {
-        // 创建玩家数组与骰子数组
-        players = new Player[2];
-        diceImg = new ImageIcon[6];
-        for (int i = 0; i < diceImg.length; i++)
-        {
-            diceImg[i] = new ImageIcon("src/img/dice/0" + (i+1) + ".png");
-        }
-
-        this.setResizable(false);
-        this.setSize(ConstantNum.MAP_WIDTH, ConstantNum.MAP_HEIGHT);
-        this.setLayout(null);
-
-        renderThreeLayers();
-
-        loadPlayerAndImg();
-
-        addUiDice();
-
-        initTeleportButtons();
-
-        this.setDefaultCloseOperation(EXIT_ON_CLOSE);
-        this.setVisible(true);
-    }
 
     /**
      * 功能描述：渲染三个主要层级
      * @author cyt
      * @date 2026/5/20 14:07
      */
-    private void renderThreeLayers()
+    private void renderFourLayers()
     {
         // 使用JLayeredPane实现分层
         layered = new JLayeredPane();
@@ -202,29 +228,26 @@ public class MainMap extends JFrame
             {
                 // 清空了上一次绘画东西
                 super.paintComponent(g);
-                g.drawImage(new ImageIcon("src/img/player/naiLong4.png").getImage(), 10, 60, 340, 110, null);
-                g.drawImage(new ImageIcon("src/img/player/xiaoMei4.png").getImage(), 10, 200, 340, 110, null);
-                String naiLongMoney = Integer.toString(naiLong.getMoney());
-                String xiaoMeiMoney = Integer.toString(xiaoMei.getMoney());
-                String naiLongProperty = Integer.toString(naiLong.getProperty());
-                String xiaoMeiProperty = Integer.toString(xiaoMei.getProperty());
-                String naiLongHp = Integer.toString(naiLong.getHp());
-                String xiaoMeiHp = Integer.toString(xiaoMei.getHp());
 
-                Font font = new Font("微软雅黑",Font.BOLD,14);
-                g.setFont(font);
+                // 渲染玩家的 UI
+                renderPlayerUI(g);
 
-                g.drawString(naiLongMoney,200,102);
-                g.drawString(xiaoMeiMoney,200,242);
-                g.drawString(naiLongProperty,240,145);
-                g.drawString(xiaoMeiProperty,240,288);
-                g.drawString(naiLongHp,210,123);
-                g.drawString(xiaoMeiHp,210,263);
+                // 渲染道具类 UI
+                renderPropUI(g);
+
             }
         };
         uiLayer.setOpaque(false);
         uiLayer.setBounds(0,0, ConstantNum.MAP_WIDTH, ConstantNum.MAP_HEIGHT);
 
+        // 给道具加上监听
+        addPropsListener();
+
+        // 给骰子加上监听
+        addDiceListener();
+
+        // 初始渲染一下道具栏
+        updatePropLabelsForCurrentPlayer();
 
         // tileLayer层
         tileLayer = new JPanel(null){
@@ -233,11 +256,11 @@ public class MainMap extends JFrame
                 // 清空了上一次绘画东西
                 super.paintComponent(g);
                 renderBuildings(g);
+                renderBarriers(g);
             }
         };
         tileLayer.setOpaque(false);
         tileLayer.setBounds(0,0, ConstantNum.MAP_WIDTH, ConstantNum.MAP_HEIGHT);
-
 
         // actorLayer层 --- 负责绘画玩家与骰子
         actorLayer = new JPanel(null) {
@@ -288,19 +311,144 @@ public class MainMap extends JFrame
         actorLayer.setOpaque(false);
         actorLayer.setBounds(0,0, ConstantNum.MAP_WIDTH, ConstantNum.MAP_HEIGHT);
 
+        // 设置渲染层级 --- ui最上面，
         layered.setLayer(bgLayer, 0);
         layered.setLayer(tileLayer, 50);
         layered.setLayer(actorLayer, 80);
         layered.setLayer(uiLayer, 100);
+
         // 添加顺序随意
         layered.add(bgLayer);
         layered.add(tileLayer);
         layered.add(actorLayer);
         layered.add(uiLayer);
 
-        // 必备的检验方法
+        // 必备的检验方法：当你的TileLayer组件的大小、位置、内部瓦片的排列方式发生变化时必须调用
         tileLayer.revalidate();
         tileLayer.repaint();
+    }
+
+    /**
+     * 功能描述：渲染道具类 UI
+     * @author cyt
+     * @date 2026/5/27 14:51
+     */
+    private void renderPropUI(Graphics g)
+    {
+        for (Map.Entry<String, Integer> entry : currentPlayer.getProps().entrySet()) {
+
+            String name = entry.getKey();
+            int count = entry.getValue();
+            if (count <= 0) continue;
+
+            switch (name){
+                case "包子"   -> g.drawString(String.valueOf(count),930,1032);
+                case "考试周"  -> g.drawString(String.valueOf(count),995,1032);
+                case "地雷"   -> g.drawString(String.valueOf(count),1060,1032);
+                case "路障"   -> g.drawString(String.valueOf(count),1125,1032);
+                case "偷取"   -> g.drawString(String.valueOf(count),1190,1032);
+                case "万能骰子"-> g.drawString(String.valueOf(count),1255,1032);
+                case "升级卡" -> g.drawString(String.valueOf(count),1310,1032);
+                case "身份证" -> g.drawString(String.valueOf(count),1375,1032);
+            }
+        }
+    }
+
+    /**
+     * 功能描述：给各个道具加上监听
+     * @author cyt
+     * @date 2026/5/27 14:39
+     */
+    private void addPropsListener()
+    {
+        for (int i = 0; i < propJLabels.length; i++)
+        {
+            int finalI = i;
+            propJLabels[i].addMouseListener(new MouseAdapter()
+            {
+                @Override
+                public void mouseClicked(MouseEvent e)
+                {
+                    super.mouseClicked(e);
+                    JLabel jLabel =  (JLabel)e.getSource();
+                    if (jLabel.getName().equals("包子") || jLabel.getName().equals("身份证") || jLabel.getName().equals("升级卡"))
+                    {
+                        currentPlayer.use(jLabel.getName(),currentPlayer);
+                    }else if (jLabel.getName().equals("万能骰子") || jLabel.getName().equals("考试周") )
+                    {
+                        int result = JOptionPane.showOptionDialog(
+                                null,
+                                "选择玩家，对其使用考试周或万能骰子",
+                                "选择玩家",
+                                JOptionPane.YES_NO_CANCEL_OPTION,
+                                JOptionPane.QUESTION_MESSAGE,
+                                null,
+                                new String[]{"自己", "对方","取消"}, // 自定义按钮
+                                "确定"
+                        );
+                        if ( result == 1 ){
+                            currentPlayer.use(jLabel.getName(),(players[(currentPlayerIndex + 1)%players.length]));
+                        }else if ( result == 0)
+                        {
+                            currentPlayer.use(jLabel.getName(),currentPlayer);
+                        }
+                    }else
+                    {
+                        currentPlayer.use(jLabel.getName(),(players[(currentPlayerIndex + 1)%players.length]));
+                    }
+
+                    refreshLayers();
+                }
+
+                @Override
+                public void mouseEntered(MouseEvent e)
+                {
+                    super.mouseEntered(e);
+                    propJLabels[finalI].setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                }
+
+                @Override
+                public void mouseExited(MouseEvent e)
+                {
+                    super.mouseExited(e);
+                    propJLabels[finalI].setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+                }
+            });
+        }
+
+        // 添加道具栏到UI
+        for (JLabel jLabel : propJLabels)
+        {
+            uiLayer.add(jLabel);
+        }
+    }
+
+    /**
+     * 功能描述：渲染玩家 UI
+     * @author cyt
+     * @date 2026/5/27 14:19
+     */
+    private void renderPlayerUI(Graphics g)
+    {
+        g.drawImage(new ImageIcon("src/img/player/naiLong4.png").getImage(), 10, 60, 340, 110, null);
+        g.drawImage(new ImageIcon("src/img/player/xiaoMei4.png").getImage(), 10, 200, 340, 110, null);
+        g.drawImage(new ImageIcon("src/img/props/kapianlan.png").getImage(),900,950,500,87,null);
+        String naiLongMoney = Integer.toString(naiLong.getMoney());
+        String xiaoMeiMoney = Integer.toString(xiaoMei.getMoney());
+        String naiLongProperty = Integer.toString(naiLong.getProperty());
+        String xiaoMeiProperty = Integer.toString(xiaoMei.getProperty());
+        String naiLongHp = Integer.toString(naiLong.getHp());
+        String xiaoMeiHp = Integer.toString(xiaoMei.getHp());
+
+        Font font = new Font("微软雅黑",Font.BOLD,14);
+        g.setFont(font);
+
+        g.drawString(naiLongMoney,200,102);
+        g.drawString(xiaoMeiMoney,200,242);
+        g.drawString(naiLongProperty,240,145);
+        g.drawString(xiaoMeiProperty,240,288);
+        g.drawString(naiLongHp,210,123);
+        g.drawString(xiaoMeiHp,210,263);
     }
 
 
@@ -309,8 +457,15 @@ public class MainMap extends JFrame
      * @author cyt
      * @date 2026/5/16 19:41
      */
-    private void addUiDice()
+    private void addDiceListener()
     {
+        // 导入骰子图片
+        diceImg = new ImageIcon[6];
+        for (int i = 0; i < diceImg.length; i++)
+        {
+            diceImg[i] = new ImageIcon("src/img/dice/0" + (i+1) + ".png");
+        }
+        
         // 点击骰子的图片
         ImageIcon icon1 = new ImageIcon("src/img/dice/vv.png");
         ImageIcon icon2 = new ImageIcon("src/img/dice/cc.png");
@@ -335,6 +490,15 @@ public class MainMap extends JFrame
                         // 已经点过就退出
                         if (isDiceRolling || currentPlayer.isWalking())
                             return;
+
+                        // 被路障挡住，跳过本回合
+                        if (currentPlayer.getBarrierStopTurns() > 0)
+                        {
+                            JOptionPane.showMessageDialog(null, currentPlayer.getName() + "被路障挡住了，停止一回合！");
+                            currentPlayer.setBarrierStopTurns(0);
+                            nextPlayer();
+                            return;
+                        }
 
                         // 正在点
                         isDiceRolling = true;
@@ -412,7 +576,7 @@ public class MainMap extends JFrame
 
 
     /**
-     * 功能描述：启动当前玩家的走路动画（Timer 驱动 advanceOneStep）
+     * 功能描述：AI 启动当前玩家的走路动画（Timer 驱动 advanceOneStep）
      * 注意：不要在 Tile/Event 里自己创建 walkTimer；统一由 MainMap 控制。
      * @author cyt
      * @date 2026/5/20
@@ -477,6 +641,7 @@ public class MainMap extends JFrame
      */
     private void refreshLayers()
     {
+        updatePropLabelsForCurrentPlayer();
         tileLayer.repaint();
         actorLayer.repaint();
         uiLayer.repaint();
@@ -491,22 +656,18 @@ public class MainMap extends JFrame
     private void onArrive()
     {
         Tile tile = tiles[currentPlayer.getPositionIndex()];
+        System.out.println(currentPlayer.getName() + "进入" + tiles[currentPlayer.getPositionIndex()].getName() + "格子");
+
+        if (tile.hasBarrier())
+        {
+            JOptionPane.showMessageDialog(null, currentPlayer.getName() + "碰到了路障，停止一回合！");
+            currentPlayer.setBarrierStopTurns(1);
+            tile.removeBarrier();
+        }
+
         tile.onPlayerArrive(currentPlayer);
         refreshLayers();
     }
-
-
-    /**
-     * 功能描述：处理当前回合逻辑
-     * @author cyt
-     * @date 2026/5/16 19:43
-     */
-    private void handlePlayerTurn()
-    {
-        System.out.println("当前玩家是" + currentPlayer.getName());
-        // 下一步逻辑
-    }
-
 
     /**
      * 功能描述：下一个玩家
@@ -517,6 +678,7 @@ public class MainMap extends JFrame
     {
         currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
         currentPlayer = players[currentPlayerIndex];
+        refreshLayers();
     }
 
 
@@ -528,6 +690,23 @@ public class MainMap extends JFrame
     public void roundIncrease()
     {
         round++;
+        decreaseAllBarrierRounds();
+    }
+
+    /**
+     * 功能描述：所有的路障减少回合数
+     * @author cyt
+     * @date 2026/5/27 13:49
+     */
+    private void decreaseAllBarrierRounds()
+    {
+        for (Tile tile : tiles)
+        {
+            if (tile != null && tile.hasBarrier())
+            {
+                tile.decreaseBarrierRound();
+            }
+        }
     }
 
 
@@ -615,7 +794,7 @@ public class MainMap extends JFrame
                         x - imgX + 270,y - imgY + 190,
                         null
                 );
-            } else if ( s==11 || s== 26 )
+            } else
             {
                 int imgX = images[land.getHouseLevel()].getWidth(null);
                 int imgY = images[land.getHouseLevel()].getHeight(null);
@@ -653,6 +832,74 @@ public class MainMap extends JFrame
         }
     }
 
+
+
+    /**
+     * 功能描述：AI给我的渲染图片
+     * @author cyt
+     * @date 2026/5/26 17:37
+     */
+    private void updatePropLabelsForCurrentPlayer() {
+        // 1. 全隐藏
+        for (JLabel label : propJLabels) {
+            label.setVisible(false);
+            label.setBounds(0, 0, 0, 0);
+        }
+
+        // 2. 根据 currentPlayer 的 props 再显示
+        for (Map.Entry<String, Integer> entry : currentPlayer.getProps().entrySet()) {
+            String name = entry.getKey();
+            int count = entry.getValue();
+            if (count <= 0) continue;
+
+            switch (name) {
+                case "包子" -> { propJLabels[0].setBounds(907,950,59,75); propJLabels[0].setVisible(true); }
+                case "考试周" -> { propJLabels[1].setBounds(967,950,59,75); propJLabels[1].setVisible(true); }
+                case "地雷" -> { propJLabels[2].setBounds(1033,950,59,75); propJLabels[2].setVisible(true); }
+                case "路障" -> { propJLabels[3].setBounds(1093,950,59,75); propJLabels[3].setVisible(true); }
+                case "偷取" -> { propJLabels[4].setBounds(1153,950,58,75); propJLabels[4].setVisible(true); }
+                case "万能骰子" -> { propJLabels[5].setBounds(1218,950,59,75); propJLabels[5].setVisible(true); }
+                case "升级卡" -> { propJLabels[6].setBounds(1277,950,59,75); propJLabels[6].setVisible(true); }
+                case "身份证" -> { propJLabels[7].setBounds(1335,950,59,75); propJLabels[7].setVisible(true); }
+            }
+        }
+    }
+
+
+    /**
+     * 功能描述：AI 传送按钮
+     * @author cyt
+     * @date 2026/5/27 15:08
+     */
+    public void teleportTo(int targetIndex)
+    {
+        if (naiLong == null || naiLong.isWalking() || targetIndex < 0 || targetIndex >=
+                tiles.length) return;
+        naiLong.setPositionIndex(targetIndex);
+        naiLong.setPosition(new Point(points[targetIndex]));
+        refreshLayers();
+        Tile t = tiles[targetIndex];
+        if (t != null) t.onPlayerArrive(naiLong);
+        refreshLayers();
+    }
+
+    /**
+     * 功能描述：渲染路障
+     * @author cyt
+     * @date 2026/5/26 20:59
+     */
+    private void renderBarriers(Graphics g)
+    {
+        Image barrierImg = new ImageIcon("src/img/props/拦路牌.png").getImage(); // 你资源里有这个
+
+        for (Tile tile : tiles) {
+            if (tile == null) continue;
+            if (!tile.hasBarrier()) continue;
+            Point point = points[tile.getPositionIndex()];
+            g.drawImage(barrierImg,(int) point.getX(),(int) point.getY(),88,94,null);
+        }
+    }
+
     /**
      * 功能描述：测试启动
      * @author cyt
@@ -663,53 +910,4 @@ public class MainMap extends JFrame
         new MainMap();
     }
 
-    /**
-     * 功能描述：AI 创建传送按钮，让naiLong传送到指定位置
-     * @param targetIndex 目标位置的索引
-     * @author cyt
-     * @date 2026/5/19
-     */
-    private void createTeleportButton(int targetIndex)
-    {
-        JButton teleportBtn = new JButton("传送到位置" + targetIndex);
-        teleportBtn.setBounds(10, 350, 150, 40);
-        teleportBtn.setFont(new Font("微软雅黑", Font.BOLD, 12));
-
-        teleportBtn.addActionListener(e -> {
-            if (naiLong != null && !naiLong.isWalking())
-            {
-                System.out.println("奈龙传送到位置: " + targetIndex);
-
-                int oldIndex = naiLong.getPositionIndex();
-                naiLong.setPositionIndex(targetIndex);
-                naiLong.setPosition(new Point(points[targetIndex]));
-
-                refreshLayers();
-
-                System.out.println("从位置 " + oldIndex + " 传送到 " + targetIndex);
-
-                Tile targetTile = tiles[targetIndex];
-                if (targetTile != null)
-                {
-                    System.out.println("到达格子: " + targetTile.getName());
-                    targetTile.onPlayerArrive(naiLong);
-                    refreshLayers();
-                }
-            }
-        });
-
-        uiLayer.add(teleportBtn);
-        uiLayer.revalidate();
-        uiLayer.repaint();
-    }
-
-    /**
-     * 功能描述：AI 制作的调试工具，可以直接传到一个位置然后执行逻辑
-     * @author cyt
-     * @date 2026/5/19
-     */
-    private void initTeleportButtons()
-    {
-        createTeleportButton(1);
-    }
 }

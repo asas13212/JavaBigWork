@@ -3,20 +3,22 @@ package props;
 import main.IsTriggerable;
 import main.Player;
 
-public class Mine extends Props implements IsTriggerable
+public class Mine extends Prop implements IsTriggerable
 {
     // 使用目标
     private Player target;
 
     // 造成的伤害
-    private int damage = 50;
+    private int damage = 40;
 
     // 放置的位置
     private int positionIndex;
 
-    public Mine(int damage)
+    public Mine()
     {
-        this.damage = damage;
+        this.setName("地雷");
+        this.setPrice(2000);
+        this.setDescription("在自己脚下埋下地雷，玩家碰到扣" + damage + "生命");
     }
 
 

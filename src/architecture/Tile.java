@@ -19,6 +19,13 @@ public abstract class Tile
 
     protected boolean hasBarrier = false;
 
+    protected int barrierRound = 0;
+
+    /**
+     * 功能描述：有参构造
+     * @author cyt
+     * @date 2026/5/26 20:01
+     */
     public Tile(int positionIndex, Point position, String name)
     {
         this.positionIndex = positionIndex;
@@ -26,31 +33,117 @@ public abstract class Tile
         this.name = name;
     }
 
-
+    /**
+     * 功能描述：无参构造
+     * @author cyt
+     * @date 2026/5/26 20:01
+     */
     public Tile()
     {
     }
 
+    /**
+     * 功能描述：玩家到了地块，执行的逻辑
+     * @author cyt
+     * @date 2026/5/26 20:01
+     */
     public abstract void onPlayerArrive(Player player);
 
+    /**
+     * 功能描述：埋地雷
+     * @author cyt
+     * @date 2026/5/26 20:02
+     */
     void plantMine(Mine mine)
     {
         if (this.hasMine)
-            System.out.println("这个区域已经埋雷了");
+            System.out.println("区域已经埋雷");
         else {
+            System.out.println(this.getName() + "埋雷成功");
             this.hasMine = true;
         }
     }
 
+    /**
+     * 功能描述：移除地雷
+     * @author cyt
+     * @date 2026/5/26 20:02
+     */
     void removeMine()
     {
          if (!this.hasMine)
              System.out.println("这里已经没有地雷了");
          else {
+             System.out.println("引爆");
              this.hasMine = false;
          }
     }
 
+    /**
+     * 功能描述：放置路障
+     * @author cyt
+     * @date 2026/5/26 20:05
+     */
+    public void plantBarrier(int rounds)
+    {
+        if (this.hasBarrier) {
+            System.out.println("该位置已有路障");
+            return;
+        }
+        this.hasBarrier = true;
+        this.barrierRound = rounds;
+    }
+
+    /**
+     * 功能描述：移除路障
+     * @author cyt
+     * @date 2026/5/26 20:04
+     */
+    public void removeBarrier()
+    {
+        if(!hasBarrier)
+        {
+            System.out.println("没有障碍");
+        }else
+        {
+            this.hasBarrier = false;
+            this.barrierRound = 0;
+        }
+    }
+
+    /**
+     * 功能描述：每回合递减路障生命周期，归零自动消失
+     * @author cyt
+     * @date 2026/5/26
+     */
+    public void decreaseBarrierRound()
+    {
+        if (!hasBarrier) return;
+        barrierRound--;
+        if (barrierRound <= 0) {
+            removeBarrier();
+            System.out.println(this.getName() + "的路障过期消失");
+        }
+    }
+
+    public int getBarrierRound()
+    {
+        return barrierRound;
+    }
+
+    /**
+     * 功能描述：判断是否有路障
+     * @author cyt
+     * @date 2026/5/26 20:04
+     */
+    public boolean hasBarrier() { return hasBarrier; }
+
+    /**
+     * 功能描述：判断是否有地雷
+     * @author cyt
+     * @date 2026/5/26 20:06
+     */
+    public boolean hasMine() {return hasMine; }
     //<editor-fold desc="getter and setter">
     public int getPositionIndex()
     {
