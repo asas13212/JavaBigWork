@@ -29,4 +29,21 @@ public class HotelLand extends Land
                 new ImageIcon("src/img/architecture/xiaoMei/旅馆5（红）右.png").getImage(),
         };
     }
+
+    @Override
+    public void renderBuilding(Graphics g) {
+        if (getOwner() == null) return;
+        int x = (int) getPosition().getX() + offSetX;
+        int y = (int) getPosition().getY() + offSetY;
+        Image[] images = "naiLong".equals(getOwner().getName()) ? naiLong : xiaoMei;
+        Image img = images[getHouseLevel()];
+        g.drawImage(img, x - img.getWidth(null) + 270, y - img.getHeight(null) + 190, null);
+    }
+
+    @Override
+    public void renderUnsold(Graphics g) {
+        Point p = getPosition();
+        if (p == null) return;
+        g.drawImage(new ImageIcon("src/img/architecture/大地未售2.png").getImage(), (int)p.getX(), (int)p.getY(), null);
+    }
 }

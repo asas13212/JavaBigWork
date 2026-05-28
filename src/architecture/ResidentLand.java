@@ -30,4 +30,14 @@ public class ResidentLand extends Land
                 new ImageIcon("src/img/architecture/xiaoMei/red6.png").getImage(),
         };
     }
+
+    @Override
+    public void renderUnsold(Graphics g) {
+        Point p = getPosition();
+        if (p == null) return;
+        int idx = getPositionIndex();
+        String name = (idx >= 0 && idx <= 9) || (idx >= 16 && idx <= 21)
+            ? "小地未售2.png" : "小地未售.png";
+        g.drawImage(new ImageIcon("src/img/architecture/" + name).getImage(), (int)p.getX(), (int)p.getY(), null);
+    }
 }

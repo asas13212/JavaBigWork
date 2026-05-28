@@ -1,7 +1,13 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git *)"
+      "Bash(git *)",
+      "Bash(javac -encoding UTF-8 -d out -sourcepath src src/main/MainMap.java src/main/DiceController.java src/main/UILayerPanel.java src/main/TileLayerPanel.java src/main/ActorLayerPanel.java)",
+      "Bash(javac -encoding UTF-8 -d out -sourcepath src src/main/MainMap.java)",
+      "Bash(javac -encoding UTF-8 -d out -sourcepath src src/main/MainMap.java src/main/ActorLayerPanel.java)",
+      "Bash(javac -encoding UTF-8 -d out -sourcepath src src/main/MainMap.java src/main/DiceController.java src/main/ActorLayerPanel.java)",
+      "Bash(javac -encoding UTF-8 -d out -sourcepath src src/main/MainMap.java src/main/Player.java src/main/DiceController.java src/main/ActorLayerPanel.java)",
+      "Bash(javac -encoding UTF-8 -d out -sourcepath src src/main/MainMap.java src/main/Player.java src/main/DiceController.java src/main/ActorLayerPanel.java src/main/TileLayerPanel.java src/props/Mine.java src/architecture/Tile.java)"
     ]
   }
 }

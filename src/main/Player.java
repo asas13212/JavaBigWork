@@ -63,7 +63,10 @@ public class Player
 
     private IntPredicate onBarrierPlace;
 
-    // 道具库存：用道具“名字”作为 key，避免 new 出来的 Prop 对象不一致导致数量回弹
+    // AI: 地雷放置回调，由 MainMap 注入
+    private IntPredicate onMinePlace;
+
+    // 道具库存：用道具”名字”作为 key，避免 new 出来的 Prop 对象不一致导致数量回弹
     private HashMap<String, Integer> propsCount;
 
     /**
@@ -136,7 +139,22 @@ public class Player
         Prop lookup = switch (propName) {
             case "包子"    -> new BaoZi();
             case "考试周"  -> new ExamWeek();
-            case "地雷"    -> new Mine();
+            // AI: 地雷需要注入放置回调，放在当前玩家脚下
+            case "地雷" -> {
+                Mine m = new Mine();
+                m.setOnPlace(index -> {
+                    boolean success = onMinePlace != null && onMinePlace.test(index);
+                    if (success) {
+                        Integer c = propsCount.get("地雷");
+                        if (c != null) {
+                            if (c == 1) propsCount.remove("地雷");
+                            else propsCount.put("地雷", c - 1);
+                        }
+                    }
+                    return success;
+                });
+                yield m;
+            }
             case "路障" -> {
                 Barrier b = new Barrier();
                 b.setOnPlace(index -> {
@@ -178,8 +196,8 @@ public class Player
 
         lookup.isUsed(target);
 
-        // 路障在 onPlace 回调中自行扣除，此处跳过
-        if (lookup instanceof Barrier) return;
+        // AI: 路障和地雷在 onPlace 回调中自行扣除库存，此处跳过
+        if (lookup instanceof Barrier || lookup instanceof Mine) return;
 
         if (count == 1) {
             propsCount.remove(propName);
@@ -347,6 +365,12 @@ public class Player
      * @date 2026/5/16 19:47
      */
     public void resetWalkFrame() { this.walkFrame = 0; }
+
+    public void cancelWalk()
+    {
+        this.stepsRemaining = 0;
+        this.isMoving = false;
+    }
 
     public String getOtherPlayerName()
     {
@@ -549,6 +573,12 @@ public class Player
     public void setOnBarrierPlace(IntPredicate onBarrierPlace)
     {
         this.onBarrierPlace = onBarrierPlace;
+    }
+
+    // AI: 地雷放置回调 setter
+    public void setOnMinePlace(IntPredicate onMinePlace)
+    {
+        this.onMinePlace = onMinePlace;
     }
 
     //</editor-fold>

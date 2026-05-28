@@ -54,7 +54,7 @@ public abstract class Tile
      * @author cyt
      * @date 2026/5/26 20:02
      */
-    void plantMine(Mine mine)
+    public void plantMine(Mine mine)
     {
         if (this.hasMine)
             System.out.println("区域已经埋雷");
@@ -69,7 +69,7 @@ public abstract class Tile
      * @author cyt
      * @date 2026/5/26 20:02
      */
-    void removeMine()
+    public void removeMine()
     {
          if (!this.hasMine)
              System.out.println("这里已经没有地雷了");

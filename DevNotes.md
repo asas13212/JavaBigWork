@@ -145,7 +145,28 @@
 ## 第十一天的开发 5-27
 ### 学习了
 * %n 换行比 \n 更安全，可以跨平台换行
+````java
+        //<editor-fold desc="AI 修改之前">
+        for (int i = boardConfig.getTiles().length - 1; i >= 0; i--) {
+            Tile tile = boardConfig.getTiles()[i];
+
+            if (tile instanceof Land) {
+                Land land = (Land) tile;
+                // 只有当地产有所有者且有建筑时才渲染
+                if (land.getOwner() != null ) {
+                    renderBuildingForLand(g, land);
+                } else {
+                    renderBuidingForNull(g, land);
+                }
+            }
+        }
+        //</editor-fold>
+````
 
 ### 完成了
 * 优化代码的逻辑
-* MainMap 的基本重构
+* AI帮助下 完成了对 MainMap 的基本重构：
+
+> 骰子控制提取成类
+> 
+> 三个面板单独为三个类

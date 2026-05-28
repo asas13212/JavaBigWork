@@ -141,4 +141,15 @@ public abstract class Land extends Tile
     {
         return offSetY;
     }
+
+    public void renderBuilding(Graphics g) {
+        if (owner == null) return;
+        int x = (int) getPosition().getX() + offSetX;
+        int y = (int) getPosition().getY() + offSetY;
+        Image[] images = "naiLong".equals(owner.getName()) ? naiLong : xiaoMei;
+        Image img = images[houseLevel];
+        g.drawImage(img, x + 130 - img.getWidth(null), y - img.getHeight(null) + 100, null);
+    }
+
+    public void renderUnsold(Graphics g) {}
 }

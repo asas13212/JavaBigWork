@@ -30,4 +30,19 @@ public class GymLand extends Land
         };
     }
 
+    @Override
+    public void renderBuilding(Graphics g) {
+        if (getOwner() == null) return;
+        int x = (int) getPosition().getX() + offSetX;
+        int y = (int) getPosition().getY() + offSetY;
+        Image[] images = "naiLong".equals(getOwner().getName()) ? naiLong : xiaoMei;
+        g.drawImage(images[getHouseLevel()], x + 5, y + 10, 126, 94, null);
+    }
+
+    @Override
+    public void renderUnsold(Graphics g) {
+        Point p = getPosition();
+        if (p == null) return;
+        g.drawImage(new ImageIcon("src/img/architecture/小地未售2.png").getImage(), (int)p.getX(), (int)p.getY(), null);
+    }
 }
