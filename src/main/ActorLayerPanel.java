@@ -34,7 +34,8 @@ public class ActorLayerPanel extends JPanel
                         1100, 650, 1200, 850,
                         900, 0, 1000, 200, null);
             } else {
-                g.drawImage(dc.diceImg[dc.diceValue - 1].getImage(),
+                int idx = Math.min(dc.diceValue - 1, dc.diceImg.length - 1);
+                g.drawImage(dc.diceImg[idx].getImage(),
                         1100, 650, 1200, 850,
                         900, 0, 1000, 200, null);
             }
@@ -42,8 +43,9 @@ public class ActorLayerPanel extends JPanel
         if (dc != null && dc.isDiceRolling && dc.diceImg != null) {
             int frameWidth = 100;
             int srcX = dc.currentDiceFrame * frameWidth;
+            int idx = Math.min(dc.diceValue - 1, dc.diceImg.length - 1);
             g.drawImage(
-                    dc.diceImg[dc.diceValue - 1].getImage(),
+                    dc.diceImg[idx].getImage(),
                     1100, 650, 1100 + 100, 650 + 200,
                     srcX, 0, srcX + frameWidth, 200, null);
         }

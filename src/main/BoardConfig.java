@@ -5,6 +5,11 @@ import architecture.Event;
 
 import java.awt.*;
 
+/**
+ * 功能描述：AI 创作的类，专门存放tile的各个位置
+ * @author cyt
+ * @date 2026/5/28 13:53
+ */
 public class BoardConfig
 {
     public record PlayerInfoLayout(int imgX, int imgY, int imgW, int imgH,

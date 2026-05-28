@@ -44,8 +44,6 @@ public class LeaderAnim extends JFrame
 
         // 切换到菜单
         switchToGameMenu();
-
-
     }
 
     /**

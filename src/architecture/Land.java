@@ -104,6 +104,14 @@ public abstract class Land extends Tile
         return houseLevel;
     }
 
+    /**
+     * 获取该地产的最高等级（用于升级卡等逻辑判断）。
+     */
+    public int getMaxLevel()
+    {
+        return maxLevel;
+    }
+
     public void setOwner(Player owner)
     {
         this.owner = owner;
@@ -121,7 +129,16 @@ public abstract class Land extends Tile
 
     public void houseLevelUp()
     {
-        this.houseLevel++;
+        // 防止越界（否则渲染 images[houseLevel] 会数组越界）
+        if (houseLevel < maxLevel)
+        {
+            this.houseLevel++;
+        }
+    }
+
+    public boolean canLevelUp()
+    {
+        return houseLevel < maxLevel;
     }
 
     public Image[] getNaiLongImg(){

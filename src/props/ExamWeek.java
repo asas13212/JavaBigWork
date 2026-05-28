@@ -13,8 +13,10 @@ public class ExamWeek extends Prop
     }
 
     @Override
-    public void isUsed(Player target)
+    public boolean isUsed(Player target)
     {
-
+        if (target == null) return false;
+        target.setBarrierStopTurns(target.getBarrierStopTurns() + 1);
+        return true;
     }
 }

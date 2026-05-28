@@ -7,7 +7,8 @@
       "Bash(javac -encoding UTF-8 -d out -sourcepath src src/main/MainMap.java src/main/ActorLayerPanel.java)",
       "Bash(javac -encoding UTF-8 -d out -sourcepath src src/main/MainMap.java src/main/DiceController.java src/main/ActorLayerPanel.java)",
       "Bash(javac -encoding UTF-8 -d out -sourcepath src src/main/MainMap.java src/main/Player.java src/main/DiceController.java src/main/ActorLayerPanel.java)",
-      "Bash(javac -encoding UTF-8 -d out -sourcepath src src/main/MainMap.java src/main/Player.java src/main/DiceController.java src/main/ActorLayerPanel.java src/main/TileLayerPanel.java src/props/Mine.java src/architecture/Tile.java)"
+      "Bash(javac -encoding UTF-8 -d out -sourcepath src src/main/MainMap.java src/main/Player.java src/main/DiceController.java src/main/ActorLayerPanel.java src/main/TileLayerPanel.java src/props/Mine.java src/architecture/Tile.java)",
+      "Bash(python3 -c ' *)"
     ]
   }
 }

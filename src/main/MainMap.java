@@ -29,7 +29,9 @@ public class MainMap extends JFrame
 
     private record PropDef(String name, String iconPath, int boundsX, int boundsY, int boundsW, int boundsH, int countX, int countY, PropCategory category) {}
 
-    private static final PropDef[] PROP_DEFS = {
+    private static final PropDef[] PROP_DEFS =
+    //<editor-fold desc="道具卡片">
+    {
         new PropDef("包子",   "props/baozi.png",     907, 950, 59, 75,  930, 1032, PropCategory.SELF),
         new PropDef("考试周", "props/exam_week.png",  967, 950, 59, 75,  995, 1032, PropCategory.SELECTABLE),
         new PropDef("地雷",   "props/shoulei.png",   1033, 950, 59, 75, 1060, 1032, PropCategory.SELF),
@@ -39,6 +41,7 @@ public class MainMap extends JFrame
         new PropDef("升级卡", "props/gongren.png",   1277, 950, 59, 75, 1310, 1032, PropCategory.SELF),
         new PropDef("身份证", "props/pass.png",      1335, 950, 59, 75, 1375, 1032, PropCategory.SELF),
     };
+    //</editor-fold>
 
     /**
      * 功能描述：主地图的构造方法
@@ -54,7 +57,7 @@ public class MainMap extends JFrame
         loadPropsAndImg();
 
         // 导入玩家与其图片
-        loadPlayerImg();
+        loadPlayerAndImg();
 
         // 渲染四个层级----背景层，瓦片层，玩家层，UI层
         renderFourLayers();
@@ -80,6 +83,7 @@ public class MainMap extends JFrame
             PropDef def = PROP_DEFS[i];
             propJLabels[i] = new JLabel();
             propJLabels[i].setIcon(new ImageIcon("src/img/" + def.iconPath));
+            // record 自动简化了方法
             propJLabels[i].setName(def.name);
         }
     }
@@ -89,7 +93,7 @@ public class MainMap extends JFrame
      * @author cyt
      * @date 2026/5/15 18:34
      */
-    private void loadPlayerImg()
+    private void loadPlayerAndImg()
     {
         players = new Player[2];
         players[0] = new Player(0,"naiLong",boardConfig.getPoints()[0]);
@@ -148,7 +152,6 @@ public class MainMap extends JFrame
             startWalkAnimation(this::afterMoveResolveTile);
         });
         diceController.attachTo(uiLayer);
-
         updatePropLabelsForCurrentPlayer();
 
         // tileLayer层
@@ -204,6 +207,7 @@ public class MainMap extends JFrame
     {
         for (int i = 0; i < propJLabels.length; i++)
         {
+            // 循环里的匿名类，不能用变化的 i，必须用一个固定不变的 finalI！
             int finalI = i;
             PropDef def = PROP_DEFS[i];
             propJLabels[i].addMouseListener(new MouseAdapter()
@@ -301,12 +305,14 @@ public class MainMap extends JFrame
         }
 
         walkTimer = new Timer(200, evt -> {
+            // 一步一步走
             boolean done = getCurrentPlayer().advanceOneStep();
             refreshLayers();
 
             // AI: 每步检测地雷，爆炸不阻止行走
             checkMine();
 
+            // 触碰到路障立刻停止行走
             if (!done && hitBarrier())
             {
                 done = true;
@@ -328,6 +334,11 @@ public class MainMap extends JFrame
         walkTimer.start();
     }
 
+    /**
+     * 功能描述：触碰到路障后的逻辑
+     * @author cyt
+     * @date 2026/5/28 14:34
+     */
     private boolean hitBarrier()
     {
         Tile tile = boardConfig.getTiles()[getCurrentPlayer().getPositionIndex()];
@@ -341,7 +352,11 @@ public class MainMap extends JFrame
         return false;
     }
 
-    // AI: 检查当前玩家所在格子是否有地雷，有则引爆（扣血但不停止行走）
+    /**
+     * 功能描述：AI: 检查当前玩家所在格子是否有地雷，有则引爆（扣血但不停止行走）
+     * @author cyt
+     * @date 2026/5/28 13:37
+     */
     private void checkMine()
     {
         Tile tile = boardConfig.getTiles()[getCurrentPlayer().getPositionIndex()];
@@ -352,7 +367,6 @@ public class MainMap extends JFrame
             JOptionPane.showMessageDialog(null, getCurrentPlayer().getName() + "踩到了地雷！失去40点生命！");
         }
     }
-
 
     /**
      * 功能描述：一次移动结束后，触发当前格子的到达效果。
@@ -410,7 +424,21 @@ public class MainMap extends JFrame
      */
     public void nextPlayer()
     {
-        currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+        // 切换逻辑真是精妙
+        for (int i = 0; i < players.length; i++)
+        {
+            currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+            Player p = getCurrentPlayer();
+
+            int skip = p.getBarrierStopTurns();
+            if (skip > 0)
+            {
+                p.setBarrierStopTurns(skip - 1);
+                JOptionPane.showMessageDialog(null, p.getName() + " 硬控了一回合！");
+                continue; // 继续切下一个玩家
+            }
+            break;
+        }
         refreshLayers();
     }
 
@@ -507,7 +535,6 @@ public class MainMap extends JFrame
 
     /**
      * 功能描述：AI 传送按钮
-     *
      * @author cyt
      * @date 2026/5/27 15:08
      */
@@ -523,7 +550,11 @@ public class MainMap extends JFrame
         };
     }
 
-    // AI: 地雷放置回调 —— 只能放在当前玩家脚下，不能重复放置，无生命周期
+    /**
+     * 功能描述：AI: 地雷放置回调 —— 只能放在当前玩家脚下，不能重复放置，无生命周期
+     * @author cyt
+     * @date 2026/5/28 13:38
+     */
     private IntPredicate createMineCallback() {
         return index -> {
             if (boardConfig.getTiles()[index].hasMine()) {
@@ -570,7 +601,11 @@ public class MainMap extends JFrame
         }
     }
 
-    // AI: 渲染地雷图标到有地雷的格子上
+    /**
+     * 功能描述：AI: 渲染地雷图标到有地雷的格子上
+     * @author cyt
+     * @date 2026/5/28 13:39
+     */
     void renderMines(Graphics g)
     {
         Image mineImg = new ImageIcon("src/img/props/shoulei.png").getImage();

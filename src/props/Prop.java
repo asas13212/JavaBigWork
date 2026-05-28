@@ -21,7 +21,7 @@ public abstract class Prop
      * @author cyt
      * @date 2026/5/14 22:12
      */
-    public abstract void isUsed(Player target);
+    public abstract boolean isUsed(Player target);
 
     //<editor-fold desc="getter and setter 方法">
     public String getName()

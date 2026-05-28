@@ -21,13 +21,14 @@ public class Mine extends Prop implements IsTriggerable
 
     // AI: 放置地雷到当前玩家所在格子
     @Override
-    public void isUsed(Player target)
+    public boolean isUsed(Player target)
     {
         int index = target.getPositionIndex();
         if (onPlace != null)
         {
             onPlace.test(index);
         }
+        return true;
     }
 
     // AI: 玩家踩中地雷时触发，扣除生命

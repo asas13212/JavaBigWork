@@ -20,8 +20,9 @@ public class BaoZi extends Prop
     }
 
     @Override
-    public void isUsed(Player target)
+    public boolean isUsed(Player target)
     {
         target.hpIncrease(recover);
+        return true;
     }
 }

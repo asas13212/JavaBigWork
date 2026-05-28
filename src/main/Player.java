@@ -19,6 +19,8 @@ public class Player
 {
     private Random random;
 
+    private  Integer nextDiceSides = null;
+
     private int hp;
 
     private int money;
@@ -66,7 +68,7 @@ public class Player
     // AI: 地雷放置回调，由 MainMap 注入
     private IntPredicate onMinePlace;
 
-    // 道具库存：用道具”名字”作为 key，避免 new 出来的 Prop 对象不一致导致数量回弹
+    // 道具库存：用道具"名字"作为 key，避免 new 出来的 Prop 对象不一致导致数量回弹
     private HashMap<String, Integer> propsCount;
 
     /**
@@ -140,36 +142,8 @@ public class Player
             case "包子"    -> new BaoZi();
             case "考试周"  -> new ExamWeek();
             // AI: 地雷需要注入放置回调，放在当前玩家脚下
-            case "地雷" -> {
-                Mine m = new Mine();
-                m.setOnPlace(index -> {
-                    boolean success = onMinePlace != null && onMinePlace.test(index);
-                    if (success) {
-                        Integer c = propsCount.get("地雷");
-                        if (c != null) {
-                            if (c == 1) propsCount.remove("地雷");
-                            else propsCount.put("地雷", c - 1);
-                        }
-                    }
-                    return success;
-                });
-                yield m;
-            }
-            case "路障" -> {
-                Barrier b = new Barrier();
-                b.setOnPlace(index -> {
-                    boolean success = onBarrierPlace != null && onBarrierPlace.test(index);
-                    if (success) {
-                        Integer c = propsCount.get("路障");
-                        if (c != null) {
-                            if (c == 1) propsCount.remove("路障");
-                            else propsCount.put("路障", c - 1);
-                        }
-                    }
-                    return success;
-                });
-                yield b;
-            }
+            case "地雷" -> getMine();
+            case "路障" -> getBarrier();
             case "偷取"    -> new Theft();
             case "万能骰子"-> new Dice();
             case "升级卡"  -> new HouseLevelUp();
@@ -194,7 +168,7 @@ public class Player
         if ( result != 0 )
             return;
 
-        lookup.isUsed(target);
+        if (!lookup.isUsed(target)) return;
 
         // AI: 路障和地雷在 onPlace 回调中自行扣除库存，此处跳过
         if (lookup instanceof Barrier || lookup instanceof Mine) return;
@@ -204,6 +178,41 @@ public class Player
         } else {
             propsCount.put(propName, count - 1);
         }
+    }
+
+    private Barrier getBarrier()
+    {
+        Barrier b = new Barrier();
+        b.setOnPlace(index -> {
+            boolean success = onBarrierPlace != null && onBarrierPlace.test(index);
+            if (success) {
+                Integer c = propsCount.get("路障");
+                // 减少地雷数量的逻辑
+                if (c != null) {
+                    if (c == 1) propsCount.remove("路障");
+                    else propsCount.put("路障", c - 1);
+                }
+            }
+            return success;
+        });
+        return b;
+    }
+
+    private Mine getMine()
+    {
+        Mine m = new Mine();
+        m.setOnPlace(index -> {
+            boolean success = onMinePlace != null && onMinePlace.test(index);
+            if (success) {
+                Integer c = propsCount.get("地雷");
+                if (c != null) {
+                    if (c == 1) propsCount.remove("地雷");
+                    else propsCount.put("地雷", c - 1);
+                }
+            }
+            return success;
+        });
+        return m;
     }
 
 
@@ -296,7 +305,9 @@ public class Player
      */
     public int rollDice()
     {
-        return random.nextInt(0,6) + 1;
+        // 20面骰子的使用之后
+        int sides = consumeDiceSidesOrDefault(6);
+        return random.nextInt(0,sides) + 1;
     }
 
     /**
@@ -377,6 +388,15 @@ public class Player
         return other.getName();
     }
 
+    /**
+     * 获取当前玩家的"另一个玩家"（对手）。
+     * 用于某些道具效果（例如：偷取需要把钱转给使用者）。
+     */
+    public Player getOtherPlayer()
+    {
+        return other;
+    }
+
     public void setOtherPlayer(Player other)
     {
         this.other = other;
@@ -411,6 +431,14 @@ public class Player
     public Land getLandOwned(int num)
     {
         return landOwned.get(num);
+    }
+
+    /**
+     * 返回当前玩家持有地产数量（等价于 getProperty()，但更直观）。
+     */
+    public int getLandOwnedCount()
+    {
+        return landOwned.size();
     }
 
     public int getPrisonRound()
@@ -575,6 +603,31 @@ public class Player
         this.onBarrierPlace = onBarrierPlace;
     }
 
+    public void setNextDiceSides(int sides)
+    {
+        this.nextDiceSides = sides;
+    }
+
+    public boolean hasNextDiceOverride()
+    {
+        return nextDiceSides != null;
+    }
+    public int consumeDiceSidesOrDefault(int defaultSize)
+    {
+        // 可以把它消耗掉，当作一次性的用品
+        if (nextDiceSides != null)
+        {
+            int sides = nextDiceSides;
+            nextDiceSides = null;
+            return sides;
+        }
+        return defaultSize;
+    }
+
+    public boolean hasNextDiceSides()
+    {
+        return nextDiceSides != null;
+    }
     // AI: 地雷放置回调 setter
     public void setOnMinePlace(IntPredicate onMinePlace)
     {

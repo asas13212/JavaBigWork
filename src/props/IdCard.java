@@ -13,8 +13,9 @@ public class IdCard extends Prop
     }
 
     @Override
-    public void isUsed(Player target)
+    public boolean isUsed(Player target)
     {
-
+        target.setNextDiceSides(20);
+        return true;
     }
 }

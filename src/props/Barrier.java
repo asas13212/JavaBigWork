@@ -12,7 +12,7 @@ public class Barrier extends Prop
     private IntPredicate onPlace;
 
     @Override
-    public void isUsed(Player target)
+    public boolean isUsed(Player target)
     {
         JFrame jFrame = new JFrame("选择安置位置");
 
@@ -54,6 +54,7 @@ public class Barrier extends Prop
         panel.add(comboBox);
         jFrame.setContentPane(panel);
         jFrame.setVisible(true);
+        return true;
     }
 
     public Barrier()

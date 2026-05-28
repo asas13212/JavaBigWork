@@ -54,22 +54,32 @@ public class DiceController
 
                 isDiceRolling = true;
                 diceButton.setIcon(iconClicked);
+                boolean isSpecialDice = map.getCurrentPlayer().hasNextDiceSides();
                 diceValue = map.getCurrentPlayer().rollDice();
-                currentDiceFrame = 0;
 
                 System.out.println(map.getCurrentPlayer().getName() + "投掷出了" + diceValue + "点数");
-
-                startDiceAnimation();
-
                 if (map.getCurrentPlayer().isInToxic())
                     map.getCurrentPlayer().hpDecrease(3);
                 map.roundIncrease();
+
+                if (isSpecialDice)
+                {
+                    isDiceRolling = false;
+                    diceButton.setIcon(iconNormal);
+                    JOptionPane.showMessageDialog(null,map.getCurrentPlayer().getName() + "20面大骰子：" + diceValue
+                    + "点!");
+                    onAnimationDone.run();
+                }else {
+                    currentDiceFrame = 0;
+                    startDiceAnimation();
+                }
             }
         });
     }
 
     private void startDiceAnimation()
     {
+
         diceTimer = new Timer(80, evt ->
         {
             currentDiceFrame++;
