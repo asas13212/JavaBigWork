@@ -31,20 +31,14 @@ public class LeaderAnim extends JFrame
         this.setResizable(false);
         this.add(jPanel);
         this.setSize(ConstantNum.WINDOWS_WIDTH, ConstantNum.WINDOWS_HEIGHT);
-        this.setTitle("第一个窗口");
+        this.setTitle("导入动画");
         this.setLocationRelativeTo(null);
         this.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         this.loadImage();
         this.setVisible(true);
 
-        // 开始初始动画
+        // 开始初始动画（播完后自动 initGameCard + switchToGameMenu）
         startAnim();
-
-        // 加入两张卡片
-        initGameCard();
-
-        // 切换到菜单
-        switchToGameMenu();
     }
 
     /**
@@ -65,11 +59,17 @@ public class LeaderAnim extends JFrame
 
         jPanel.add(gameCard[1],"游戏说明");
         jPanel.add(gameCard[2],"制作团队");
+
+        // AI: 模式选择面板
+        ModeSelectPanel modeSelect = new ModeSelectPanel(cardLayout, jPanel);
+        jPanel.add(modeSelect, "模式选择");
     }
 
     /**
-     * 加载图片
+     * 功能描述：加载图片
      * <p>自动读取所有的png加载图片</p>
+     * @author cyt
+     * @date 2026/6/1 21:00
      */
     private void loadImage()
     {
@@ -107,37 +107,35 @@ public class LeaderAnim extends JFrame
     }
 
     /**
-     * 功能描述：正确启动初始图片
-     * @author cyt
+     * 功能描述：Timer 驱动开场动画，不阻塞 EDT，异步图片有时间加载完
+     * @author cyt & Claude
      * @date 2026/5/11 22:20
      */
     public void startAnim()
     {
-        // TODO 异步加载可能会首帧消失，Thread.sleep会阻塞
-        while ( index < img.length )
-        {
-            try
-            {
-                Thread.sleep(500);
-            }
-            catch (InterruptedException e)
-            {
-                throw new RuntimeException(e);
-            }
-
+        Timer timer = new Timer(500, e -> {
             index++;
-            if( index == img.length )
-                break;
+            if (index >= img.length)
+            {
+                ((Timer) e.getSource()).stop();
+                Log.info("开场动画播放完毕");
 
+                // 动画播完再初始化菜单和切换
+                initGameCard();
+                switchToGameMenu();
+                return;
+            }
             this.repaint();
-        }
-        Log.info("开场动画播放完毕");
+        });
+        timer.setInitialDelay(300); // 给首帧一点加载时间
+        timer.start();
     }
-/**
- * 功能描述：实现游戏菜单的进入
- * @author cyt
- * @date 2026/5/13 19:05
- */
+
+    /**
+     * 功能描述：实现游戏菜单的进入
+     * @author cyt
+     * @date 2026/5/13 19:05
+     */
     private void switchToGameMenu() {
         GameMenu gameMenu = new GameMenu();
         gameMenu.setCardLayout(cardLayout);

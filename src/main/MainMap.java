@@ -11,12 +11,18 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.function.IntPredicate;
 
+/**
+ * 功能描述：游戏主地图窗口，管理棋盘分层渲染、玩家回合、AI 自动行动、道具使用和行走动画
+ * @author cyt & Claude
+ * @date 2026/6/1 21:00
+ */
 public class MainMap extends JFrame
 {
     // 布局相关
     JLayeredPane layered;
     JLabel bgLayer;
     JPanel uiLayer,tileLayer,actorLayer;
+    LogPanel logPanel;
     DiceController diceController;
     Timer walkTimer;
     JLabel[] propJLabels;
@@ -25,6 +31,12 @@ public class MainMap extends JFrame
     private int currentPlayerIndex = 0;
     Player[] players;
     static int round = 0;
+
+    // AI: 是否为 AI 对战模式
+    private final boolean aiMode;
+
+    // AI: AI 自动行动的延迟计时器
+    private Timer aiTurnTimer;
 
     // 瓦片与背景导入
     BoardConfig boardConfig = new BoardConfig();
@@ -54,8 +66,10 @@ public class MainMap extends JFrame
      * @author cyt
      * @date 2026/5/14 14:29
      */
-    public MainMap()
+    public MainMap(boolean aiMode)
     {
+        this.aiMode = aiMode;
+
         // 导入调试包
         DebugTools.install(this);
 
@@ -80,9 +94,9 @@ public class MainMap extends JFrame
     }
 
     /**
-     * 功能描：导入道具
+     * 功能描述：导入道具
      * @author cyt
-     * @date 2026/5/27 14:12
+     * @date 2026/6/1 21:00
      */
     private void loadPropsAndImg()
     {
@@ -109,6 +123,14 @@ public class MainMap extends JFrame
         players[1] = new Player(0,"xiaoMei",boardConfig.getPoints()[0]);
         players[0].setOtherPlayer(players[1]);
         players[1].setOtherPlayer(players[0]);
+
+        // AI: 如果开启 AI 模式，将玩家2设置为 AI
+        if (aiMode)
+        {
+            players[1].setAI(true);
+            players[1].setName("AI·xiaoMei");
+            Log.info("AI 模式已开启：玩家2（" + players[1].getName() + "）由 AI 控制");
+        }
 
         players[0].setOnBarrierPlace(createBarrierCallback());
         players[1].setOnBarrierPlace(createBarrierCallback());
@@ -184,6 +206,14 @@ public class MainMap extends JFrame
         // 必备的检验方法：当你的TileLayer组件的大小、位置、内部瓦片的排列方式发生变化时必须调用
         tileLayer.revalidate();
         tileLayer.repaint();
+
+        // 装上日志窗口
+        // 装上日志窗口（右下角）
+        logPanel = new LogPanel();
+        logPanel.setBounds(0, ConstantNum.MAP_HEIGHT - 250, 400, 180);
+        layered.add(logPanel);
+        layered.setLayer(logPanel, 110);  // 比 uiLayer(100) 更高，压在最上面
+        Log.setPanel(logPanel);
     }
 
     /**
@@ -226,9 +256,18 @@ public class MainMap extends JFrame
             PropDef def = PROP_DEFS[i];
             propJLabels[i].addMouseListener(new MouseAdapter()
             {
+                /**
+                 * 功能描述：处理道具点击事件，AI 回合禁止操作
+                 * @param e 鼠标事件
+                 * @author cyt
+                 * @date 2026/6/1 21:00
+                 */
                 @Override
                 public void mouseClicked(MouseEvent e)
                 {
+                    // AI 回合时禁止人类点击道具
+                    if (getCurrentPlayer().isAI()) return;
+
                     switch (def.category) {
                         case SELF -> getCurrentPlayer().use(def.name, getCurrentPlayer());
                         case SELECTABLE -> {
@@ -253,6 +292,12 @@ public class MainMap extends JFrame
                     refreshLayers();
                 }
 
+                /**
+                 * 功能描述：鼠标进入时切换为手型光标
+                 * @param e 鼠标事件
+                 * @author cyt
+                 * @date 2026/6/1 21:00
+                 */
                 @Override
                 public void mouseEntered(MouseEvent e)
                 {
@@ -260,6 +305,12 @@ public class MainMap extends JFrame
                     propJLabels[finalI].setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                 }
 
+                /**
+                 * 功能描述：鼠标退出时恢复默认光标
+                 * @param e 鼠标事件
+                 * @author cyt
+                 * @date 2026/6/1 21:00
+                 */
                 @Override
                 public void mouseExited(MouseEvent e)
                 {
@@ -358,9 +409,9 @@ public class MainMap extends JFrame
     }
 
     /**
-     * 功能描述：触碰到路障后的逻辑
-     * @author cyt
-     * @date 2026/5/28 14:34
+     * 功能描述：触碰到路障后的逻辑，AI 使用自动消失弹窗
+     * @author cyt & Claude
+     * @date 2026/6/1 21:00
      */
     private boolean hitBarrier()
     {
@@ -368,7 +419,14 @@ public class MainMap extends JFrame
         if (tile != null && tile.hasBarrier())
         {
             tile.removeBarrier();
-            JOptionPane.showMessageDialog(null, getCurrentPlayer().getName() + "碰到了路障，停止前进！");
+            if (getCurrentPlayer().isAI())
+            {
+                AIDecision.showAIMessage(getCurrentPlayer().getName() + " 碰到了路障，停止前进！");
+            }
+            else
+            {
+                JOptionPane.showMessageDialog(null, getCurrentPlayer().getName() + "碰到了路障，停止前进！");
+            }
             getCurrentPlayer().cancelWalk();
             return true;
         }
@@ -377,8 +435,8 @@ public class MainMap extends JFrame
 
     /**
      * 功能描述：AI: 检查当前玩家所在格子是否有地雷，有则引爆（扣血但不停止行走）
-     * @author cyt
-     * @date 2026/5/28 13:37
+     * @author cyt & Claude
+     * @date 2026/6/1 21:00
      */
     private void checkMine()
     {
@@ -387,7 +445,14 @@ public class MainMap extends JFrame
         {
             tile.removeMine();
             getCurrentPlayer().hpDecrease(40);
-            JOptionPane.showMessageDialog(null, getCurrentPlayer().getName() + "踩到了地雷！失去40点生命！");
+            if (getCurrentPlayer().isAI())
+            {
+                AIDecision.showAIMessage(getCurrentPlayer().getName() + " 踩到了地雷！失去40点生命！");
+            }
+            else
+            {
+                JOptionPane.showMessageDialog(null, getCurrentPlayer().getName() + "踩到了地雷！失去40点生命！");
+            }
         }
     }
 
@@ -441,9 +506,9 @@ public class MainMap extends JFrame
     }
 
     /**
-     * 功能描述：下一个玩家
-     * @author cyt
-     * @date 2026/5/16 19:42
+     * 功能描述：下一个玩家，AI 玩家自动启动回合。处理路障停止、监禁等跳过逻辑
+     * @author cyt & Claude
+     * @date 2026/6/1 21:00
      */
     public void nextPlayer()
     {
@@ -462,23 +527,123 @@ public class MainMap extends JFrame
                     if (skip == 1)
                     {
                         p.setStatus(null);
-                        JOptionPane.showMessageDialog(null, p.getName() + " 刑满释放！");
+                        if (p.isAI())
+                            AIDecision.showAIMessage(p.getName() + " 刑满释放！");
+                        else
+                            JOptionPane.showMessageDialog(null, p.getName() + " 刑满释放！");
                     }
                     else
                     {
-                        JOptionPane.showMessageDialog(null,
-                                p.getName() + " 还在坐牢，剩余 " + (skip - 1) + " 回合");
+                        if (p.isAI())
+                            AIDecision.showAIMessage(p.getName() + " 还在坐牢，剩余 " + (skip - 1) + " 回合");
+                        else
+                            JOptionPane.showMessageDialog(null,
+                                    p.getName() + " 还在坐牢，剩余 " + (skip - 1) + " 回合");
                     }
                 }
                 else
                 {
-                    JOptionPane.showMessageDialog(null, p.getName() + " 硬控了一回合！");
+                    if (p.isAI())
+                        AIDecision.showAIMessage(p.getName() + " 硬控了一回合！");
+                    else
+                        JOptionPane.showMessageDialog(null, p.getName() + " 硬控了一回合！");
                 }
                 continue;
             }
             break;
         }
         refreshLayers();
+
+        // AI: 如果切换到 AI 玩家，自动开始回合
+        if (getCurrentPlayer().isAI())
+        {
+            startAITurn();
+        }
+    }
+
+    /**
+     * 功能描述：AI: 启动 AI 玩家的自动回合
+     * 1. AI 决策是否使用道具
+     * 2. 延迟后自动掷骰
+     * @author cyt & Claude
+     * @date 2026/6/1 21:00
+     */
+    private void startAITurn()
+    {
+        // 取消之前的计时器（如果有）
+        if (aiTurnTimer != null && aiTurnTimer.isRunning())
+        {
+            aiTurnTimer.stop();
+        }
+
+        aiTurnTimer = new Timer(800, evt -> {
+            ((Timer) evt.getSource()).stop();
+
+            Player ai = getCurrentPlayer();
+            if (!ai.isAI() || ai.isWalking()) return;
+
+            // AI: 掷骰前决策使用道具
+            String propToUse = AIDecision.decidePropBeforeRoll(ai, players, boardConfig.getTiles());
+            if (propToUse != null)
+            {
+                Player target = AIDecision.decidePropTarget(ai, propToUse, players);
+                Log.info(ai.getName() + "（AI）决定使用道具：" + propToUse + "，目标：" + target.getName());
+
+                // 特殊处理：路障需要预设目标索引（跳过 JFrame 弹窗）
+                if ("路障".equals(propToUse))
+                {
+                    int barrierIdx = AIDecision.decideBarrierIndex(ai, boardConfig.getTiles());
+                    if (barrierIdx < 0)
+                    {
+                        Log.info(ai.getName() + "（AI）没有合适位置放路障，跳过");
+                        propToUse = null;
+                    }
+                    else
+                    {
+                        ai.setBarrierAiTargetIndex(barrierIdx);
+                        Log.info(ai.getName() + "（AI）选择路障位置：索引 " + barrierIdx);
+                    }
+                }
+
+                // 特殊处理：万能骰子需要选择点数
+                if ("万能骰子".equals(propToUse))
+                {
+                    int diceVal = AIDecision.chooseDiceValue(ai, boardConfig.getTiles());
+                    ai.setNextDiceValue(diceVal);
+                    Log.info(ai.getName() + "（AI）选择骰子点数：" + diceVal);
+                }
+
+                // 特殊处理：升级卡需要选择地产
+                if ("升级卡".equals(propToUse))
+                {
+                    int landIdx = AIDecision.chooseLandToUpgrade(ai);
+                    if (landIdx < 0)
+                    {
+                        Log.info(ai.getName() + "（AI）没有可升级的地产，跳过使用升级卡");
+                        propToUse = null;
+                    }
+                }
+
+                if (propToUse != null)
+                {
+                    ai.use(propToUse, target);
+                    refreshLayers();
+                }
+            }
+
+            // AI: 延迟一小段后再自动掷骰
+            Timer rollTimer = new Timer(500, rollEvt -> {
+                ((Timer) rollEvt.getSource()).stop();
+                if (!ai.isWalking())
+                {
+                    diceController.triggerRoll();
+                }
+            });
+            rollTimer.setRepeats(false);
+            rollTimer.start();
+        });
+        aiTurnTimer.setRepeats(false);
+        aiTurnTimer.start();
     }
 
     /**
@@ -590,9 +755,10 @@ public class MainMap extends JFrame
     }
 
     /**
-     * 功能描述：AI 传送按钮
-     * @author cyt
-     * @date 2026/5/27 15:08
+     * 功能描述：路障放置回调，检查重复放置并刷新渲染
+     * @return 返回 true 表示放置成功
+     * @author cyt & Claude
+     * @date 2026/6/1 21:00
      */
     private IntPredicate createBarrierCallback() {
         return index -> {
@@ -608,8 +774,8 @@ public class MainMap extends JFrame
 
     /**
      * 功能描述：AI: 地雷放置回调 —— 只能放在当前玩家脚下，不能重复放置，无生命周期
-     * @author cyt
-     * @date 2026/5/28 13:38
+     * @author cyt & Claude
+     * @date 2026/6/1 21:00
      */
     private IntPredicate createMineCallback() {
         return index -> {
@@ -678,8 +844,8 @@ public class MainMap extends JFrame
 
     /**
      * 功能描述：AI: 渲染地雷图标到有地雷的格子上
-     * @author cyt
-     * @date 2026/5/28 13:39
+     * @author cyt & Claude
+     * @date 2026/6/1 21:00
      */
     void renderMines(Graphics g)
     {
@@ -698,8 +864,8 @@ public class MainMap extends JFrame
      * @author cyt
      * @date 2026/5/19 12:25
      */
-    static void main()
-    {
-        new MainMap();
-    }
+//    static void main()
+//    {
+//        new MainMap(false); // 默认双人模式
+//    }
 }

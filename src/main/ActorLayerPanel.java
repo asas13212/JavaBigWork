@@ -3,10 +3,21 @@ package main;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * 功能描述：玩家与骰子渲染层，负责绘制玩家角色和骰子动画
+ * @author cyt
+ * @date 2026/6/1 21:00
+ */
 public class ActorLayerPanel extends JPanel
 {
     private final MainMap map;
 
+    /**
+     * 功能描述：构造方法，初始化透明面板并绑定主地图引用
+     * @param map 主地图实例
+     * @author cyt
+     * @date 2026/6/1 21:00
+     */
     ActorLayerPanel(MainMap map)
     {
         super(null);
@@ -15,6 +26,12 @@ public class ActorLayerPanel extends JPanel
         setBounds(0, 0, ConstantNum.MAP_WIDTH, ConstantNum.MAP_HEIGHT);
     }
 
+    /**
+     * 功能描述：绘制玩家角色、格子索引和骰子动画
+     * @param g 图形上下文
+     * @author cyt
+     * @date 2026/6/1 21:00
+     */
     @Override
     protected void paintComponent(Graphics g)
     {

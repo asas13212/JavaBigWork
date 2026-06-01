@@ -83,6 +83,18 @@ public class BoardConfig
         };
     }
 
+    /**
+     * 功能描述：获取所有格子的坐标点数组
+     * @return 坐标点数组
+     * @author cyt
+     * @date 2026/6/1 21:00
+     */
     public Point[] getPoints() { return points; }
+    /**
+     * 功能描述：获取所有瓦片（格子）数组
+     * @return 瓦片数组
+     * @author cyt
+     * @date 2026/6/1 21:00
+     */
     public Tile[] getTiles() { return tiles; }
 }

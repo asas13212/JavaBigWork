@@ -3,9 +3,20 @@ package architecture;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * 功能描述：体育馆地产，可升至5级，展示对应等级建筑图像
+ * @author cyt
+ * @date 2026/6/1
+ */
 public class GymLand extends Land
 {
 
+    /**
+     * 功能描述：构造体育馆地产，初始化等级上限、升级费用、过路费及建筑图像
+     * @param positionIndex 格子索引
+     * @param position 坐标
+     * @param name 名称
+     */
     public GymLand(int positionIndex, Point position, String name)
     {
         super(positionIndex, position, name);
@@ -30,6 +41,10 @@ public class GymLand extends Land
         };
     }
 
+    /**
+     * 功能描述：渲染已售体育馆的建筑图像
+     * @param g 图形上下文
+     */
     @Override
     public void renderBuilding(Graphics g) {
         if (getOwner() == null) return;
@@ -39,6 +54,10 @@ public class GymLand extends Land
         g.drawImage(images[getHouseLevel()], x + 5, y + 10, 126, 94, null);
     }
 
+    /**
+     * 功能描述：渲染未售体育馆的底图
+     * @param g 图形上下文
+     */
     @Override
     public void renderUnsold(Graphics g) {
         Point p = getPosition();

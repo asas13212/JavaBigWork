@@ -200,6 +200,14 @@
 * 日志类应当有什么
 * 注释的四种写法
 
-
 ### 完成了
 * Log类的基本构建
+---------
+
+## 第十五天的开发 6-1
+### 学习了
+* JScrollPane与JTextAread的基本使用
+* SwingUtilities.invokeLater的认识
+
+### 完成了
+* 

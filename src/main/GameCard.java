@@ -20,6 +20,14 @@ public class GameCard extends JPanel
     CardLayout cardLayout;
     Container container;
 
+    /**
+     * 功能描述：构造方法，初始化卡片名称和布局容器
+     * @param name 卡片名称
+     * @param cardLayout 卡片布局管理器
+     * @param container 父容器
+     * @author cyt
+     * @date 2026/6/1 21:00
+     */
     public GameCard(String name,CardLayout cardLayout,Container container)
     {
         this.name = name;
@@ -78,6 +86,12 @@ public class GameCard extends JPanel
 
         jLabel.addMouseListener(new MouseAdapter()
         {
+            /**
+             * 功能描述：点击退出按钮，返回游戏菜单
+             * @param e 鼠标事件
+             * @author cyt
+             * @date 2026/6/1 21:00
+             */
             @Override
             public void mouseClicked(MouseEvent e)
             {
@@ -86,12 +100,24 @@ public class GameCard extends JPanel
                 container.repaint();
             }
 
+            /**
+             * 功能描述：鼠标进入时切换为高亮按钮图标
+             * @param e 鼠标事件
+             * @author cyt
+             * @date 2026/6/1 21:00
+             */
             @Override
             public void mouseEntered(MouseEvent e)
             {
                 jLabel.setIcon(new ImageIcon(buttonPath[1]));
             }
 
+            /**
+             * 功能描述：鼠标退出时恢复默认按钮图标
+             * @param e 鼠标事件
+             * @author cyt
+             * @date 2026/6/1 21:00
+             */
             @Override
             public void mouseExited(MouseEvent e)
             {

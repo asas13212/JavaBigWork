@@ -1,5 +1,10 @@
 package architecture;
 
+/**
+ * 功能描述：格子类型枚举，定义地图上各类格子的名称与描述
+ * @author cyt
+ * @date 2026/6/1
+ */
 public enum TileType
 {
     START("起点", "出发即可领钱"),
@@ -16,15 +21,28 @@ public enum TileType
     private final String description;
 
 
+    /**
+     * 功能描述：枚举构造方法
+     * @param name 类型名称
+     * @param description 类型描述
+     */
     TileType(String name, String description) {
         this.name = name;
         this.description = description;
     }
 
+    /**
+     * 功能描述：获取类型名称
+     * @return 类型名称
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * 功能描述：获取类型描述
+     * @return 类型描述
+     */
     public String getDescription() {
         return description;
     }

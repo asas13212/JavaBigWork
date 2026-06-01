@@ -1,6 +1,7 @@
 package props;
 
 import architecture.Land;
+import main.AIDecision;
 import main.Player;
 
 import javax.swing.*;
@@ -8,11 +9,21 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+/**
+ * 功能描述：升级卡道具，随机升级一个未升级的已购地产
+ * @author cyt &amp; Claude
+ * @date 2026/6/1 0:00
+ */
 public class HouseLevelUp extends Prop
 {
 
     private final Random random = new Random();
 
+    /**
+     * 功能描述：构造升级卡道具，设置名称、描述和价格
+     * @author cyt &amp; Claude
+     * @date 2026/6/1 0:00
+     */
     public HouseLevelUp()
     {
         this.setDescription("随机一个未升级地产升级");
@@ -20,6 +31,13 @@ public class HouseLevelUp extends Prop
         this.setName("升级卡");
     }
 
+    /**
+     * 功能描述：使用升级卡，随机升级一个未升级的已购地产；AI自动跳过弹窗
+     * @param target 使用升级卡的玩家
+     * @return 是否使用成功
+     * @author cyt &amp; Claude
+     * @date 2026/6/1 0:00
+     */
     @Override
     public boolean isUsed(Player target)
     {
@@ -29,25 +47,30 @@ public class HouseLevelUp extends Prop
         int landCount = target.getLandOwnedCount();
         if (landCount <= 0)
         {
-            JOptionPane.showMessageDialog(null, "你还没有任何地产，无法使用升级卡！");
+            if (target.isAI())
+                AIDecision.showAIMessage(target.getName() + " 还没有地产，无法使用升级卡");
+            else
+                JOptionPane.showMessageDialog(null, "你还没有任何地产，无法使用升级卡！");
             return false;
         }
 
-        // 先找到所有的 Land，再从里面寻找可以升级的房产
+        // 所有未满级的地产都可以升级
         List<Land> candidates = new ArrayList<>();
         for (int i = 0; i < landCount; i++)
         {
             Land land = target.getLandOwned(i);
             if (land == null) continue;
             if (land.getOwner() != target) continue;
-            if (land.getHouseLevel() != 0) continue;
             if (!land.canLevelUp()) continue;
             candidates.add(land);
         }
 
         if (candidates.isEmpty())
         {
-            JOptionPane.showMessageDialog(null, "没有可升级的地产（需要有未升级的已购地产）！");
+            if (target.isAI())
+                AIDecision.showAIMessage(target.getName() + " 没有可升级的地产（所有地产均已满级）");
+            else
+                JOptionPane.showMessageDialog(null, "没有可升级的地产（所有地产均已满级）！");
             return false;
         }
 
@@ -56,8 +79,10 @@ public class HouseLevelUp extends Prop
         chosen.houseLevelUp();
         int after = chosen.getHouseLevel();
 
-        JOptionPane.showMessageDialog(null,
-                "升级卡生效：" + chosen.getName() + " 等级 " + before + " -> " + after);
+        if (target.isAI())
+            AIDecision.showAIMessage(target.getName() + " 升级卡生效：" + chosen.getName() + " 等级 " + before + " -> " + after);
+        else
+            JOptionPane.showMessageDialog(null, "升级卡生效：" + chosen.getName() + " 等级 " + before + " -> " + after);
         return true;
     }
 }

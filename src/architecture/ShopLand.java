@@ -6,6 +6,11 @@ import props.*;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * 功能描述：商店地产，可升至4级，玩家可在商店中购买道具，AI自动选购
+ * @author cyt & Claude
+ * @date 2026/6/1
+ */
 public class ShopLand extends Land
 {
     private static final Prop[] ITEMS = {
@@ -19,6 +24,12 @@ public class ShopLand extends Land
             new IdCard()
     };
 
+    /**
+     * 功能描述：构造商店地产，初始化等级上限、升级费用、过路费及建筑图像
+     * @param positionIndex 格子索引
+     * @param position 坐标
+     * @param name 名称
+     */
     public ShopLand(int positionIndex, Point position, String name)
     {
         super(positionIndex, position, name);
@@ -41,6 +52,11 @@ public class ShopLand extends Land
         };
     }
 
+    /**
+     * 功能描述：玩家到达商店地产，AI自动选购或弹出人类玩家购物界面
+     * @param player 到达的玩家
+     * @author cyt & Claude
+     */
     @Override
     public void onPlayerArrive(Player player)
     {
@@ -51,6 +67,34 @@ public class ShopLand extends Land
         }
 
         boolean isOwner = (getOwner() == player);
+
+        // AI: AI 玩家自动选择
+        if (player.isAI())
+        {
+            int choice = main.AIDecision.chooseShopItem(player, isOwner);
+            if (choice < 0) return;
+
+            Prop chosen = ITEMS[choice];
+            int price = isOwner ? chosen.getPrice() * 4 / 5 : chosen.getPrice();
+
+            if (player.getMoney() < price) return;
+
+            player.moneyDecrease(price);
+            player.addProp(chosen);
+
+            if (!isOwner)
+            {
+                int commission = chosen.getPrice() / 5;
+                getOwner().moneyIncrease(commission);
+                main.AIDecision.showAIMessage(player.getName() + " 购买了 " + chosen.getName()
+                        + "！\n$" + commission + " 税金已交给 " + getOwner().getName());
+            }
+            else
+            {
+                main.AIDecision.showAIMessage(player.getName() + " 购买了 " + chosen.getName() + "！（八折优惠）");
+            }
+            return;
+        }
 
         JPanel grid = new JPanel(new GridLayout(4, 2, 10, 10));
         final int[] selected = {-1};
@@ -110,6 +154,10 @@ public class ShopLand extends Land
         }
     }
 
+    /**
+     * 功能描述：渲染已售商店的建筑图像
+     * @param g 图形上下文
+     */
     @Override
     public void renderBuilding(Graphics g) {
         if (getOwner() == null) return;
@@ -120,6 +168,10 @@ public class ShopLand extends Land
         g.drawImage(img, x - img.getWidth(null) + 270, y - img.getHeight(null) + 190, null);
     }
 
+    /**
+     * 功能描述：渲染未售商店的底图
+     * @param g 图形上下文
+     */
     @Override
     public void renderUnsold(Graphics g) {
         Point p = getPosition();

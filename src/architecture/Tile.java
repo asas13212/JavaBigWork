@@ -6,6 +6,11 @@ import props.Mine;
 
 import java.awt.*;
 
+/**
+ * 功能描述：地图格子抽象基类，定义位置、地雷、路障等通用属性与行为
+ * @author cyt
+ * @date 2026/6/1
+ */
 public abstract class Tile
 {
     protected int positionIndex;
@@ -127,6 +132,11 @@ public abstract class Tile
         }
     }
 
+    /**
+     * 功能描述：获取路障剩余回合数
+     * @author cyt
+     * @date 2026/6/1
+     */
     public int getBarrierRound()
     {
         return barrierRound;
@@ -144,43 +154,80 @@ public abstract class Tile
      * @author cyt
      * @date 2026/5/26 20:06
      */
+    /**
+     * 功能描述：判断是否有地雷
+     * @author cyt
+     * @date 2026/5/26 20:06
+     */
     public boolean hasMine() {return hasMine; }
     //<editor-fold desc="getter and setter">
+    /**
+     * 功能描述：获取格子索引
+     * @return 格子索引
+     */
     public int getPositionIndex()
     {
         return positionIndex;
     }
 
+    /**
+     * 功能描述：设置格子索引
+     * @param positionIndex 格子索引
+     */
     public void setPositionIndex(int positionIndex)
     {
         this.positionIndex = positionIndex;
     }
 
+    /**
+     * 功能描述：获取格子类型
+     * @return 格子类型
+     */
     public TileType getTileType()
     {
         return tileType;
     }
 
+    /**
+     * 功能描述：设置格子类型
+     * @param tileType 格子类型
+     */
     public void setTileType(TileType tileType)
     {
         this.tileType = tileType;
     }
 
+    /**
+     * 功能描述：获取格子坐标
+     * @return 格子坐标
+     */
     public Point getPosition()
     {
         return position;
     }
 
+    /**
+     * 功能描述：设置格子坐标
+     * @param position 格子坐标
+     */
     public void setPosition(Point position)
     {
         this.position = position;
     }
 
+    /**
+     * 功能描述：获取格子名称
+     * @return 格子名称
+     */
     public String getName()
     {
         return name;
     }
 
+    /**
+     * 功能描述：设置格子名称
+     * @param name 格子名称
+     */
     public void setName(String name)
     {
         this.name = name;

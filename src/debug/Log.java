@@ -1,6 +1,8 @@
 package debug;
 
 
+import main.LogPanel;
+
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
@@ -25,25 +27,50 @@ import java.time.LocalDateTime;
 public class Log
 {
     public static final boolean ENABLED = true;
+    private static LogPanel panel = null;
     private static String currentDate = "";
     private static BufferedWriter writer = null;
     private static final String LOG_DIR = "logs";
 
+    /**
+     * 功能描述：记录信息级别日志
+     * @param msg 日志信息
+     * @author cyt
+     * @date 2026/6/1 0:00
+     */
     public static void info(String msg)
     {
         log("INFO",msg);
     }
 
+    /**
+     * 功能描述：记录调试级别日志
+     * @param msg 日志信息
+     * @author cyt
+     * @date 2026/6/1 0:00
+     */
     public static void debug(String msg)
     {
         log("DEBUG",msg);
     }
 
+    /**
+     * 功能描述：记录警告级别日志
+     * @param msg 日志信息
+     * @author cyt
+     * @date 2026/6/1 0:00
+     */
     public static void warn(String msg)
     {
         log("WARN",msg);
     }
 
+    /**
+     * 功能描述：记录错误级别日志
+     * @param msg 日志信息
+     * @author cyt
+     * @date 2026/6/1 0:00
+     */
     public static void error(String msg)
     {
         log("ERROR",msg);
@@ -65,6 +92,10 @@ public class Log
             System.err.println(line);
         else
             System.out.println(line);
+
+        if (panel != null) {
+            panel.append(level, msg);
+        }
 
         writeToFile(line);
     }
@@ -107,6 +138,11 @@ public class Log
         return new BufferedWriter(new OutputStreamWriter(new FileOutputStream(logFile,true), StandardCharsets.UTF_8));
     }
 
+    /**
+     * 功能描述：关闭日志，释放文件写入器资源
+     * @author cyt
+     * @date 2026/6/1 0:00
+     */
     public static void close()
     {
         closeWriter();
@@ -172,5 +208,16 @@ public class Log
         LocalDate today = LocalDate.now();
         return String.format("%04d-%02d-%02d",
                 today.getYear(), today.getMonthValue(), today.getDayOfMonth());
+    }
+
+    /**
+     * 功能描述：设置日志面板，日志信息将同步到面板显示
+     * @param panel 日志面板实例
+     * @author cyt &amp; Claude
+     * @date 2026/6/1 0:00
+     */
+    public static void setPanel(LogPanel panel)
+    {
+        Log.panel = panel;
     }
 }

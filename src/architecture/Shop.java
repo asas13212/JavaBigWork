@@ -1,11 +1,17 @@
 package architecture;
 
+import main.AIDecision;
 import main.Player;
 import props.*;
 
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * 功能描述：商店格子，玩家可在此原价购买道具，AI自动选购
+ * @author cyt & Claude
+ * @date 2026/6/1
+ */
 public class Shop extends Tile
 {
 
@@ -20,15 +26,42 @@ public class Shop extends Tile
             new IdCard()
     };
 
+    /**
+     * 功能描述：构造商店格子
+     * @param positionIndex 格子索引
+     * @param position 坐标
+     * @param name 名称
+     */
     public Shop(int positionIndex, Point position, String name)
     {
         super(positionIndex, position, name);
         this.tileType = TileType.SHOP;
     }
 
+    /**
+     * 功能描述：玩家到达商店，AI自动选购或弹出人类玩家购物界面
+     * @param player 到达的玩家
+     * @author cyt & Claude
+     */
     @Override
     public void onPlayerArrive(Player player)
     {
+        // AI: 自主购物
+        if (player.isAI())
+        {
+            // 复用 AIDecision 的商店选择逻辑（isOwner=false 即原价）
+            int choice = AIDecision.chooseShopItem(player, false);
+            if (choice < 0) return;
+
+            Prop chosen = ITEMS[choice];
+            if (player.getMoney() < chosen.getPrice()) return;
+
+            player.moneyDecrease(chosen.getPrice());
+            player.addProp(chosen);
+            AIDecision.showAIMessage(player.getName() + " 在商店购买了 " + chosen.getName() + "（$" + chosen.getPrice() + "）");
+            return;
+        }
+
         JPanel grid = new JPanel(new GridLayout(4, 2, 10, 10));
 
         final int[] selected = {-1};

@@ -154,6 +154,12 @@ public class GameMenu extends JPanel
     class MyButtonListener implements MouseListener
     {
 
+        /**
+         * 功能描述：处理菜单按钮点击事件，切换对应面板
+         * @param e 鼠标事件
+         * @author cyt
+         * @date 2026/6/1 21:00
+         */
         @Override
         public void mouseClicked(MouseEvent e)
         {
@@ -161,10 +167,8 @@ public class GameMenu extends JPanel
             switch (jLabel.getName())
             {
                 case "开始游戏":
-                    Log.info("开始游戏按钮被点击");
-                    new MainMap();
-                    SwingUtilities.getWindowAncestor(GameMenu.this).dispose();
-//                  cardLayout.show(container,jLabel.getName());
+                    Log.info("开始游戏按钮被点击 → 进入模式选择");
+                    cardLayout.show(container, "模式选择");
                     break;
                 case "游戏说明":
                     Log.info("游戏说明按钮被点击");
@@ -176,23 +180,42 @@ public class GameMenu extends JPanel
                     break;
                 case "退出游戏":
                     System.exit(0);
+                    break;
                 default:
                     break;
             }
         }
 
+        /**
+         * 功能描述：鼠标按下事件（空实现，满足接口要求）
+         * @param e 鼠标事件
+         * @author cyt
+         * @date 2026/6/1 21:00
+         */
         @Override
         public void mousePressed(MouseEvent e)
         {
 
         }
 
+        /**
+         * 功能描述：鼠标释放事件（空实现，满足接口要求）
+         * @param e 鼠标事件
+         * @author cyt
+         * @date 2026/6/1 21:00
+         */
         @Override
         public void mouseReleased(MouseEvent e)
         {
 
         }
 
+        /**
+         * 功能描述：鼠标进入时切换为高亮图标
+         * @param e 鼠标事件
+         * @author cyt
+         * @date 2026/6/1 21:00
+         */
         @Override
         public void mouseEntered(MouseEvent e)
         {
@@ -201,6 +224,12 @@ public class GameMenu extends JPanel
             jLabel.setIcon(new ImageIcon(buttonPath[1]));
         }
 
+        /**
+         * 功能描述：鼠标退出时恢复默认图标
+         * @param e 鼠标事件
+         * @author cyt
+         * @date 2026/6/1 21:00
+         */
         @Override
         public void mouseExited(MouseEvent e)
         {

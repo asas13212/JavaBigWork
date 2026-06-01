@@ -3,8 +3,19 @@ package architecture;
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * 功能描述：住宅地产，可升至5级，展示对应等级建筑图像
+ * @author cyt
+ * @date 2026/6/1
+ */
 public class ResidentLand extends Land
 {
+    /**
+     * 功能描述：构造住宅地产，初始化等级上限、升级费用、过路费及建筑图像
+     * @param positionIndex 格子索引
+     * @param position 坐标
+     * @param name 名称
+     */
     public ResidentLand(int positionIndex, Point position, String name)
     {
         super(positionIndex, position, name);
@@ -31,6 +42,10 @@ public class ResidentLand extends Land
         };
     }
 
+    /**
+     * 功能描述：渲染未售住宅的底图，根据位置选择不同底图
+     * @param g 图形上下文
+     */
     @Override
     public void renderUnsold(Graphics g) {
         Point p = getPosition();
