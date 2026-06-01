@@ -1,5 +1,6 @@
 package architecture;
 
+import debug.Log;
 import main.Player;
 import props.Mine;
 
@@ -57,9 +58,9 @@ public abstract class Tile
     public void plantMine(Mine mine)
     {
         if (this.hasMine)
-            System.out.println("区域已经埋雷");
+            Log.warn("[" + this.getName() + "] 区域已经埋雷，无法重复放置");
         else {
-            System.out.println(this.getName() + "埋雷成功");
+            Log.info("[" + this.getName() + "] 埋雷成功");
             this.hasMine = true;
         }
     }
@@ -72,9 +73,9 @@ public abstract class Tile
     public void removeMine()
     {
          if (!this.hasMine)
-             System.out.println("这里已经没有地雷了");
+             Log.debug("[" + this.getName() + "] 地雷已被移除，无需重复操作");
          else {
-             System.out.println("引爆");
+             Log.warn("[" + this.getName() + "] 地雷引爆！");
              this.hasMine = false;
          }
     }
@@ -87,7 +88,7 @@ public abstract class Tile
     public void plantBarrier(int rounds)
     {
         if (this.hasBarrier) {
-            System.out.println("该位置已有路障");
+            Log.warn("[" + this.getName() + "] 该位置已有路障，无法重复放置");
             return;
         }
         this.hasBarrier = true;
@@ -103,7 +104,7 @@ public abstract class Tile
     {
         if(!hasBarrier)
         {
-            System.out.println("没有障碍");
+            Log.debug("[" + this.getName() + "] 路障不存在，无需移除");
         }else
         {
             this.hasBarrier = false;
@@ -122,7 +123,7 @@ public abstract class Tile
         barrierRound--;
         if (barrierRound <= 0) {
             removeBarrier();
-            System.out.println(this.getName() + "的路障过期消失");
+            Log.info("[" + this.getName() + "] 路障过期消失");
         }
     }
 
@@ -184,29 +185,5 @@ public abstract class Tile
     {
         this.name = name;
     }
-
-
-    public boolean isHasMine()
-    {
-        return hasMine;
-    }
-
-    public void setHasMine(boolean hasMine)
-    {
-        this.hasMine = hasMine;
-    }
-
-    public boolean isHasBarrier()
-    {
-        return hasBarrier;
-    }
-
-    public void setHasBarrier(boolean hasBarrier)
-    {
-        this.hasBarrier = hasBarrier;
-    }
-
-
-
     //</editor-fold>
 }

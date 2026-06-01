@@ -1,5 +1,6 @@
 package main;
 
+import debug.Log;
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -55,14 +56,22 @@ public class DiceController
                 isDiceRolling = true;
                 diceButton.setIcon(iconClicked);
                 boolean isSpecialDice = map.getCurrentPlayer().hasNextDiceSides();
+                boolean isFixedDice = map.getCurrentPlayer().hasNextDiceValue();
                 diceValue = map.getCurrentPlayer().rollDice();
 
-                System.out.println(map.getCurrentPlayer().getName() + "投掷出了" + diceValue + "点数");
+                Log.info(map.getCurrentPlayer().getName() + " 投掷出了 " + diceValue + " 点");
                 if (map.getCurrentPlayer().isInToxic())
                     map.getCurrentPlayer().hpDecrease(3);
                 map.roundIncrease();
 
-                if (isSpecialDice)
+                if (isFixedDice)
+                {
+                    isDiceRolling = false;
+                    diceButton.setIcon(iconNormal);
+                    JOptionPane.showMessageDialog(null, map.getCurrentPlayer().getName() + " 万能骰子：" + diceValue + "点!");
+                    onAnimationDone.run();
+                }
+                else if (isSpecialDice)
                 {
                     isDiceRolling = false;
                     diceButton.setIcon(iconNormal);

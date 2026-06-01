@@ -1,5 +1,6 @@
 package main;
 
+import debug.Log;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -32,7 +33,7 @@ public class GameMenu extends JPanel
     public GameMenu()
     {
 
-        System.out.println("已切换到游戏菜单");
+        Log.info("已切换到游戏菜单");
         this.setLayout(null);
         this.setVisible(true);
         this.loadImage();
@@ -40,7 +41,7 @@ public class GameMenu extends JPanel
         this.uiDisplay();
         this.buttonAddListener();
 
-        System.out.println("加载完毕");
+        Log.info("游戏菜单加载完毕");
     }
     
     /**
@@ -93,7 +94,7 @@ public class GameMenu extends JPanel
         {
             jLabelsClick[i] = new JLabel(new ImageIcon(buttonPath[0]));
             if (jLabelsClick[i] == null)
-                System.out.println("第" + i + "张导入失败");
+                Log.error("第" + i + "张按钮图片导入失败");
         }
 
         // 导入红色图标
@@ -160,17 +161,17 @@ public class GameMenu extends JPanel
             switch (jLabel.getName())
             {
                 case "开始游戏":
-                    System.out.println("开始游戏按钮被点击了");
+                    Log.info("开始游戏按钮被点击");
                     new MainMap();
                     SwingUtilities.getWindowAncestor(GameMenu.this).dispose();
 //                  cardLayout.show(container,jLabel.getName());
                     break;
                 case "游戏说明":
-                    System.out.println("游戏说明按钮被点击了");
+                    Log.info("游戏说明按钮被点击");
                     cardLayout.show(container,jLabel.getName());
                     break;
                 case "制作团队":
-                    System.out.println("制作团队按钮被点击了");
+                    Log.info("制作团队按钮被点击");
                     cardLayout.show(container,jLabel.getName());
                     break;
                 case "退出游戏":

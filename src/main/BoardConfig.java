@@ -72,8 +72,8 @@ public class BoardConfig
                 new ResidentLand(20, new Point(958 - 140, 668), "居民楼7"),
                 new Hospital(21, new Point(), "医院2"),
                 new Chance(22, new Point(), "抽卡点3"),
-                new Event(23, new Point(), "上饶中学"),
-                new Empty(24, new Point(), "空地"),
+                new Event(23, new Point(), "美食城"),
+                new Casino(24, new Point(), "皇家赌场"),
 
                 new ResidentLand(25, new Point(620, 715), "居民楼8"),
                 new ShopLand(26, new Point(483, 600), "超市"),

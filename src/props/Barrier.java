@@ -1,5 +1,6 @@
 package props;
 
+import debug.Log;
 import main.Player;
 
 import javax.swing.*;
@@ -39,7 +40,7 @@ public class Barrier extends Prop
             String selectStr = (String) comboBox.getSelectedItem();
             int selectIndex = Integer.parseInt(selectStr);
 
-            System.out.println("你选中的索引是：" + selectIndex);
+            Log.info("路障放置，选中索引：" + selectIndex);
 
             if (onPlace != null) {
                 if (onPlace.test(selectIndex)) {

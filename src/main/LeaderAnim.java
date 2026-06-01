@@ -1,5 +1,6 @@
 package main;
 
+import debug.Log;
 import javax.swing.*;
 import java.awt.*;
 
@@ -77,6 +78,9 @@ public class LeaderAnim extends JFrame
                 // 这里必须使用绝对路径
                 "src/img/leaderPic/1.png",
                 "src/img/leaderPic/2.png",
+                "src/img/leaderPic/3.png",
+                "src/img/leaderPic/4.png",
+                "src/img/leaderPic/5.png",
             };
 
         img = new Image[filePath.length];
@@ -114,7 +118,7 @@ public class LeaderAnim extends JFrame
         {
             try
             {
-                Thread.sleep(1000);
+                Thread.sleep(500);
             }
             catch (InterruptedException e)
             {
@@ -127,7 +131,7 @@ public class LeaderAnim extends JFrame
 
             this.repaint();
         }
-        System.out.println("成功脱出");
+        Log.info("开场动画播放完毕");
     }
 /**
  * 功能描述：实现游戏菜单的进入

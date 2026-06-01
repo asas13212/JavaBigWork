@@ -2,12 +2,13 @@ package architecture;
 
 import main.Player;
 
+import javax.swing.*;
 import java.awt.*;
 
 public class Prison extends Tile
 {
 
-    private int duration = 2;
+    private static final int DURATION = 2;
 
     public Prison(int positionIndex, Point position, String name)
     {
@@ -18,10 +19,14 @@ public class Prison extends Tile
     @Override
     public void onPlayerArrive(Player player)
     {
+        if (player.getBarrierStopTurns() > 0)
+            return;
+
+        player.setBarrierStopTurns(DURATION);
         player.setStatus("isPrisoned");
-        if(player.getPrisonRound() > 0)
-            player.prisonRoundDecrease();
-        else
-            player.setPrisonRound(duration);
+        JOptionPane.showMessageDialog(null,
+                player.getName() + " 被关进了监狱！停止 " + DURATION + " 回合",
+                "牢底坐穿",
+                JOptionPane.INFORMATION_MESSAGE);
     }
 }

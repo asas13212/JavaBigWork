@@ -9,6 +9,7 @@ public enum TileType
     PRISON("监狱", "暂停游戏两回合"),
     HOSPITAL("医院", "恢复生命值"),
     GACHA("抽卡点", "随机抽取一张卡片"),
+    CASINO("赌场", "弹珠博彩"),
     EMPTY("空地","无效果");
 
     private final String name;

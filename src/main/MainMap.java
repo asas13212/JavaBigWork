@@ -2,6 +2,7 @@ package main;
 
 import architecture.*;
 import debug.DebugTools;
+import debug.Log;
 import props.Barrier;
 import props.Mine;
 import javax.swing.*;
@@ -12,6 +13,7 @@ import java.util.function.IntPredicate;
 
 public class MainMap extends JFrame
 {
+    // 布局相关
     JLayeredPane layered;
     JLabel bgLayer;
     JPanel uiLayer,tileLayer,actorLayer;
@@ -19,15 +21,19 @@ public class MainMap extends JFrame
     Timer walkTimer;
     JLabel[] propJLabels;
 
+    // 游戏相关
     private int currentPlayerIndex = 0;
     Player[] players;
     static int round = 0;
 
+    // 瓦片与背景导入
     BoardConfig boardConfig = new BoardConfig();
 
+    // 根据使用对象分类
     private enum PropCategory { SELF, SELECTABLE, OTHER }
 
-    private record PropDef(String name, String iconPath, int boundsX, int boundsY, int boundsW, int boundsH, int countX, int countY, PropCategory category) {}
+    // 快速建造模板类
+    private record PropDef(String name, String iconPath, int boundsX, int boundsY, int boundsW, int boundsH, int countX/*数量的位置 */, int countY, PropCategory category) {}
 
     private static final PropDef[] PROP_DEFS =
     //<editor-fold desc="道具卡片">
@@ -58,6 +64,9 @@ public class MainMap extends JFrame
 
         // 导入玩家与其图片
         loadPlayerAndImg();
+
+        // 给特殊地块注入回调
+        setupSpecialTiles();
 
         // 渲染四个层级----背景层，瓦片层，玩家层，UI层
         renderFourLayers();
@@ -177,7 +186,12 @@ public class MainMap extends JFrame
         tileLayer.repaint();
     }
 
-    Player getCurrentPlayer() {
+    /**
+     * 功能描述：获取当前的玩家
+     * @author cyt
+     * @date 2026/5/29 17:35
+     */
+    public Player getCurrentPlayer() {
         return players[currentPlayerIndex];
     }
 
@@ -278,6 +292,15 @@ public class MainMap extends JFrame
             p2.imgX(), p2.imgY(), p2.imgW(), p2.imgH(), null);
         g.drawImage(new ImageIcon("src/img/props/kapianlan.png").getImage(),
             card.x, card.y, card.width, card.height, null);
+        if (currentPlayerIndex == 0)
+        {
+            g.drawImage(new ImageIcon("src/img/player/red.png").getImage(),
+            p1.imgX() + 270,p1.imgY() + 40,50,37,null);
+        }else if (currentPlayerIndex == 1)
+        {
+            g.drawImage(new ImageIcon("src/img/player/blue.png").getImage(),
+            p2.imgX() + 270,p2.imgY() + 40,50,37,null);
+        }
 
         Font font = new Font("微软雅黑",Font.BOLD,14);
         g.setFont(font);
@@ -395,7 +418,7 @@ public class MainMap extends JFrame
      * @author cyt
      * @date 2026/5/19 12:26
      */
-    void refreshLayers()
+    public void refreshLayers()
     {
         updatePropLabelsForCurrentPlayer();
         tileLayer.repaint();
@@ -411,7 +434,7 @@ public class MainMap extends JFrame
     private void onArrive()
     {
         Tile tile = boardConfig.getTiles()[getCurrentPlayer().getPositionIndex()];
-        System.out.println(getCurrentPlayer().getName() + "进入" + boardConfig.getTiles()[getCurrentPlayer().getPositionIndex()].getName() + "格子");
+        Log.info(getCurrentPlayer().getName() + " 进入 [" + tile.getName() + "] 格子（索引 " + getCurrentPlayer().getPositionIndex() + "）");
 
         tile.onPlayerArrive(getCurrentPlayer());
         refreshLayers();
@@ -434,8 +457,24 @@ public class MainMap extends JFrame
             if (skip > 0)
             {
                 p.setBarrierStopTurns(skip - 1);
-                JOptionPane.showMessageDialog(null, p.getName() + " 硬控了一回合！");
-                continue; // 继续切下一个玩家
+                if ("isPrisoned".equals(p.getStatus()))
+                {
+                    if (skip == 1)
+                    {
+                        p.setStatus(null);
+                        JOptionPane.showMessageDialog(null, p.getName() + " 刑满释放！");
+                    }
+                    else
+                    {
+                        JOptionPane.showMessageDialog(null,
+                                p.getName() + " 还在坐牢，剩余 " + (skip - 1) + " 回合");
+                    }
+                }
+                else
+                {
+                    JOptionPane.showMessageDialog(null, p.getName() + " 硬控了一回合！");
+                }
+                continue;
             }
             break;
         }
@@ -450,6 +489,7 @@ public class MainMap extends JFrame
     public void roundIncrease()
     {
         round++;
+        Log.info("====== 第 " + round + " 回合 ======");
         decreaseAllBarrierRounds();
     }
 
@@ -534,6 +574,22 @@ public class MainMap extends JFrame
 
 
     /**
+     * 功能描述：给公园等特殊地块注入回调（传送等）
+     * @author cyt
+     * @date 2026/5/29
+     */
+    private void setupSpecialTiles()
+    {
+        for (Tile tile : boardConfig.getTiles())
+        {
+            if (tile instanceof ParkLand park)
+            {
+                park.setTeleportHandler(this::teleportTo);
+            }
+        }
+    }
+
+    /**
      * 功能描述：AI 传送按钮
      * @author cyt
      * @date 2026/5/27 15:08
@@ -579,9 +635,28 @@ public class MainMap extends JFrame
         getCurrentPlayer().setPositionIndex(targetIndex);
         getCurrentPlayer().setPosition(new Point(boardConfig.getPoints()[targetIndex]));
         refreshLayers();
+
         Tile t = boardConfig.getTiles()[targetIndex];
-        if (t != null) t.onPlayerArrive(getCurrentPlayer());
+        if (t != null)
+            t.onPlayerArrive(getCurrentPlayer());
         refreshLayers();
+    }
+
+    /**
+     * 功能描述：渲染格子索引号
+     * @author cyt
+     * @date 2026/5/31
+     */
+    void renderTileIndexes(Graphics g)
+    {
+        g.setColor(Color.BLACK);
+        g.setFont(new Font("微软雅黑", Font.BOLD, 12));
+        for (int i = 0; i < boardConfig.getPoints().length; i++)
+        {
+            Point p = boardConfig.getPoints()[i];
+            // AI 索引文字画在格子左上角偏右下的位置，你自己调
+            g.drawString(String.valueOf(i), p.x + 15, p.y + 30);
+        }
     }
 
     /**
@@ -608,13 +683,13 @@ public class MainMap extends JFrame
      */
     void renderMines(Graphics g)
     {
-        Image mineImg = new ImageIcon("src/img/props/shoulei.png").getImage();
+        Image mineImg = new ImageIcon("src/img/props/mine.png").getImage();
 
         for (Tile tile : boardConfig.getTiles()) {
             if (tile == null) continue;
             if (!tile.hasMine()) continue;
             Point point = boardConfig.getPoints()[tile.getPositionIndex()];
-            g.drawImage(mineImg, (int) point.getX(), (int) point.getY(), 40, 40, null);
+            g.drawImage(mineImg, (int) point.getX() - 10, (int) point.getY(),75,100, null);
         }
     }
 

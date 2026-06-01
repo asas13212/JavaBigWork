@@ -9,7 +9,7 @@ public class Dice extends Prop
 
     public Dice()
     {
-        this.setDescription("控制下一次骰子投掷点数");
+        this.setDescription("选择下一次投掷的点数");
         this.setName("万能骰子");
         this.setPrice(1500);
     }
@@ -17,9 +17,22 @@ public class Dice extends Prop
     @Override
     public boolean isUsed(Player target)
     {
-        JComboBox<String> jComboBox = new JComboBox<>(
-            new String[]{"一点", "两点", "三点", "四点","五点","六点"}
+        String[] choices = {"1点", "2点", "3点", "4点", "5点", "6点"};
+        int choice = JOptionPane.showOptionDialog(
+                null,
+                "选择下一次投掷的点数：",
+                "万能骰子",
+                JOptionPane.DEFAULT_OPTION,
+                JOptionPane.PLAIN_MESSAGE,
+                null,
+                choices,
+                choices[0]
         );
+
+        if (choice < 0) return false;
+
+        target.setNextDiceValue(choice + 1);
+        JOptionPane.showMessageDialog(null, "已锁定下次投掷为 " + (choice + 1) + " 点！");
         return true;
     }
 }

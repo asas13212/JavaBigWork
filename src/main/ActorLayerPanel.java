@@ -19,6 +19,7 @@ public class ActorLayerPanel extends JPanel
     protected void paintComponent(Graphics g)
     {
         super.paintComponent(g);
+        map.renderTileIndexes(g);
         if (map.players != null) {
             if (map.players[0] != null) {
                 map.players[0].renderStaticSprite(g, map.players[0].getPosition());

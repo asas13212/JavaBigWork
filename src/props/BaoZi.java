@@ -1,5 +1,6 @@
 package props;
 
+import main.ConstantNum;
 import main.Player;
 
 public class BaoZi extends Prop
@@ -22,7 +23,13 @@ public class BaoZi extends Prop
     @Override
     public boolean isUsed(Player target)
     {
-        target.hpIncrease(recover);
+        if (target.getHp() >= ConstantNum.PLAYER_HP)
+        {
+            javax.swing.JOptionPane.showMessageDialog(null, "生命值已满，无需使用！");
+            return false;
+        }
+        int actualHeal = Math.min(recover, ConstantNum.PLAYER_HP - target.getHp());
+        target.hpIncrease(actualHeal);
         return true;
     }
 }

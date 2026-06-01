@@ -1,6 +1,7 @@
 package main;
 
 import architecture.Land;
+import debug.Log;
 import props.*;
 
 import javax.swing.*;
@@ -21,6 +22,8 @@ public class Player
 
     private  Integer nextDiceSides = null;
 
+    private  Integer nextDiceValue = null;
+
     private int hp;
 
     private int money;
@@ -31,10 +34,6 @@ public class Player
 
     private String name;
 
-    private int dice;
-
-    private int round;
-
     private String status;
 
     private int moveTowards;
@@ -42,8 +41,6 @@ public class Player
     private Image[] moveSprites;
 
     private Image staticSprite;
-
-    private int prisonRound;
 
     private int barrierStopTurns = 0;
 
@@ -223,10 +220,11 @@ public class Player
      */
     public void hpDecrease(int num)
     {
-        System.out.println(this.getName() + "生命减少" + num);
+        Log.warn(this.getName() + " 生命减少 " + num + "，当前 HP=" + (hp - num));
         hp -= num;
         if (hp < 0)
         {
+            Log.error(this.getName() + " HP 归零，游戏结束！");
             new Win(this);
         }
     }
@@ -238,7 +236,7 @@ public class Player
      */
     public void hpIncrease(int num)
     {
-        System.out.println(this.getName() + "生命增加" + num);
+        Log.info(this.getName() + " 生命增加 " + num + "，当前 HP=" + (hp + num));
         hp += num;
     }
 
@@ -249,7 +247,7 @@ public class Player
      */
     public void moneyIncrease(int num)
     {
-        System.out.println(this.getName() + "金钱增加" + num);
+        Log.info(this.getName() + " 金钱增加 " + num + "，当前 $" + (money + num));
         money += num;
     }
 
@@ -261,10 +259,11 @@ public class Player
      */
     public void moneyDecrease(int num)
     {
-        System.out.println(this.getName() + "金钱减少" + num);
+        Log.warn(this.getName() + " 金钱减少 " + num + "，当前 $" + (money - num));
         money -= num;
         if (money < 0)
         {
+            Log.error(this.getName() + " 金钱归零，游戏结束！");
             new Win(this);
         }
     }
@@ -290,22 +289,18 @@ public class Player
     }
 
     /**
-     * 功能描述：监狱计时器
-     * @author cyt
-     * @date 2026/5/15 18:35
-     */
-    public void prisonRoundDecrease(){
-        this.prisonRound--;
-    }
-
-    /**
      * 功能描述：roll骰子
      * @author cyt
      * @date 2026/5/16 19:46
      */
     public int rollDice()
     {
-        // 20面骰子的使用之后
+        if (nextDiceValue != null)
+        {
+            int value = nextDiceValue;
+            nextDiceValue = null;
+            return value;
+        }
         int sides = consumeDiceSidesOrDefault(6);
         return random.nextInt(0,sides) + 1;
     }
@@ -377,6 +372,11 @@ public class Player
      */
     public void resetWalkFrame() { this.walkFrame = 0; }
 
+    /**
+     * 功能描述：停止行走
+     * @author cyt
+     * @date 2026/5/30 10:29
+     */
     public void cancelWalk()
     {
         this.stepsRemaining = 0;
@@ -389,19 +389,30 @@ public class Player
     }
 
     /**
-     * 获取当前玩家的"另一个玩家"（对手）。
-     * 用于某些道具效果（例如：偷取需要把钱转给使用者）。
+     * 功能描述：获取别的玩家
+     * @author cyt
+     * @date 2026/5/30 10:28
      */
     public Player getOtherPlayer()
     {
         return other;
     }
 
+    /**
+     * 功能描述：设置别动玩家
+     * @author cyt
+     * @date 2026/5/30 10:28
+     */
     public void setOtherPlayer(Player other)
     {
         this.other = other;
     }
 
+    /**
+     * 功能描述：找房产数量
+     * @author cyt
+     * @date 2026/5/30 10:29
+     */
     public int getProperty()
     {
         return this.landOwned.toArray().length;
@@ -439,16 +450,6 @@ public class Player
     public int getLandOwnedCount()
     {
         return landOwned.size();
-    }
-
-    public int getPrisonRound()
-    {
-        return prisonRound;
-    }
-
-    public void setPrisonRound(int prisonRound)
-    {
-        this.prisonRound = prisonRound;
     }
 
     public int getBarrierStopTurns()
@@ -509,26 +510,6 @@ public class Player
     public void setName(String name)
     {
         this.name = name;
-    }
-
-    public int getDice()
-    {
-        return dice;
-    }
-
-    public void setDice(int dice)
-    {
-        this.dice = dice;
-    }
-
-    public int getRound()
-    {
-        return round;
-    }
-
-    public void setRound(int round)
-    {
-        this.round = round;
     }
 
     public String getStatus()
@@ -627,6 +608,16 @@ public class Player
     public boolean hasNextDiceSides()
     {
         return nextDiceSides != null;
+    }
+
+    public boolean hasNextDiceValue()
+    {
+        return nextDiceValue != null;
+    }
+
+    public void setNextDiceValue(int value)
+    {
+        this.nextDiceValue = value;
     }
     // AI: 地雷放置回调 setter
     public void setOnMinePlace(IntPredicate onMinePlace)

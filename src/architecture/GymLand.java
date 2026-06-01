@@ -9,7 +9,7 @@ public class GymLand extends Land
     public GymLand(int positionIndex, Point position, String name)
     {
         super(positionIndex, position, name);
-        this.maxLevel = 4;
+        this.maxLevel = 5;
         this.priceLevelUp = new int[]{2000,2000,2000,3000,5000,8000};
         this.tax = new int[]{400,800,1600,3200,6400,12000};
         this.offSetX = 0;
