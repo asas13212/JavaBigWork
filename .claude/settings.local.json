@@ -10,9 +10,7 @@
       "Bash(javac -encoding UTF-8 -d out -sourcepath src src/main/MainMap.java src/main/Player.java src/main/DiceController.java src/main/ActorLayerPanel.java src/main/TileLayerPanel.java src/props/Mine.java src/architecture/Tile.java)",
       "Bash(python3 -c ' *)",
       "Bash(javac -encoding UTF-8 -d out -sourcepath src src/debug/DebugTools.java)",
-      "Bash(javac -encoding UTF-8 -d out -sourcepath src src/architecture/Casino.java src/architecture/PachinkoPanel.java)",
-      "Bash(javac -encoding UTF-8 -d out -sourcepath src src/main/Main.java)",
-      "Bash(ls -la out/main/)"
+      "Bash(javac -encoding UTF-8 -d out -sourcepath src src/architecture/Casino.java src/architecture/PachinkoPanel.java)"
     ]
   }
 }

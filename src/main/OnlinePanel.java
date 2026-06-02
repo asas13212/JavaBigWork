@@ -26,6 +26,7 @@ public class OnlinePanel extends JPanel
     private JTextField roomIdField;
     private JLabel statusLabel;
     private JButton btnCreate, btnJoin;
+    private boolean isHost = false;   // 标记自己是不是房主
 
     // 图片路径
     private static final String IMG_BG = "src/img/gameMenu/choice.png";
@@ -78,6 +79,7 @@ public class OnlinePanel extends JPanel
                 {
                     Log.info("联机：创建房间");
                     statusLabel.setText("正在连接服务器...");
+                    isHost = true;
                     setButtonsEnabled(false);
                     createRoom();
                 }
@@ -301,11 +303,27 @@ public class OnlinePanel extends JPanel
                     case ROOM_CREATED:
                         roomId = msg.get("roomId", "");
                         roomIdField.setText(roomId);
-                        statusLabel.setText("✓ 房间创建成功！房间号：" + roomId + "，等待对手加入...");
+                        if (isHost)
+                        {
+                            statusLabel.setText("✓ 房间创建成功！房间号：" + roomId + "，等待对手加入...");
+                        }
+                        else
+                        {
+                            statusLabel.setText("✓ 已加入房间 " + roomId + "，等待主机开始...");
+                        }
                         break;
                     case PLAYER_JOINED:
                         String name = msg.get("playerName", "对手");
-                        statusLabel.setText("✓ " + name + " 已加入房间！准备开始游戏...");
+                        statusLabel.setText("✓ " + name + " 已加入！正在开始游戏...");
+                        // 房主看到有人加入，自动发 READY 开始游戏
+                        if (isHost && client != null && client.isConnected())
+                        {
+                            new Thread(() -> {
+                                try { Thread.sleep(800); } catch (InterruptedException ignored) { }
+                                SwingUtilities.invokeLater(() ->
+                                    client.send(new Message(MessageType.READY)));
+                            }).start();
+                        }
                         break;
                     case GAME_START:
                         statusLabel.setText("✓ 游戏开始！");
