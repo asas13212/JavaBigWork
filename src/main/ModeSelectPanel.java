@@ -96,17 +96,18 @@ public class ModeSelectPanel extends JPanel
         // 返回按钮（左上角）
         addBackButton();
 
-        // 联机对战按钮（位于底部居中，带半透明背景）
-        JButton btnOnline = new JButton("🌐 联 机 对 战");
+        // 联机对战按钮（底部居中，不透明，防 hover 透底图）
+        JButton btnOnline = new JButton("🌐  联 机 对 战");
         btnOnline.setFont(new Font("微软雅黑", Font.BOLD, 20));
         btnOnline.setForeground(Color.WHITE);
-        btnOnline.setBackground(new Color(50, 120, 220, 200));
+        btnOnline.setBackground(new Color(50, 120, 220));
         btnOnline.setBounds(120, 380, 260, 50);
         btnOnline.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnOnline.setOpaque(true);
         btnOnline.setContentAreaFilled(true);
-        btnOnline.setBorderPainted(true);
-        btnOnline.setBorder(BorderFactory.createLineBorder(new Color(80, 160, 255), 2));
+        btnOnline.setBorderPainted(false);
         btnOnline.setFocusPainted(false);
+        btnOnline.setRolloverEnabled(false);
         btnOnline.addMouseListener(new MouseAdapter()
         {
             @Override

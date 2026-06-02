@@ -24,25 +24,20 @@ public class OnlinePanel extends JPanel
     private String roomId;
     private JTextField roomIdField;
     private JLabel statusLabel;
+    private JButton btnCreate, btnJoin;
 
-    // 按钮图片路径
-    private static final String IMG_23 = "src/img/gameMenu/23.png";
-    private static final String IMG_24 = "src/img/gameMenu/24.png";
-    private static final String IMG_CHOICE = "src/img/gameMenu/choice.png";
+    // 图片路径
+    private static final String IMG_BG = "src/img/gameMenu/choice.png";
     private static final String IMG_BACK = "src/img/gameMenu/bk1.png";
     private static final String IMG_BACK_HOVER = "src/img/gameMenu/bk2.png";
 
-    /** 23.png / 24.png 实际像素尺寸 */
-    private static final int BTN_W = 224;
-    private static final int BTN_H = 307;
+    // 配色
+    private static final Color COLOR_BLUE = new Color(50, 120, 220);
+    private static final Color COLOR_GREEN = new Color(40, 180, 80);
+    private static final Color COLOR_DARK = new Color(30, 30, 50);
+    private static final Color COLOR_WHITE = new Color(255, 255, 255);
+    private static final Color COLOR_YELLOW = new Color(255, 255, 180);
 
-    /**
-     * 功能描述：构造方法，加载联机对战面板
-     * @param cardLayout 卡片布局管理器
-     * @param container 父容器
-     * @author cyt & Claude
-     * @date 2026/6/2
-     */
     public OnlinePanel(CardLayout cardLayout, Container container)
     {
         this.cardLayout = cardLayout;
@@ -50,166 +45,193 @@ public class OnlinePanel extends JPanel
         this.setLayout(null);
         this.setSize(ConstantNum.WINDOWS_WIDTH, ConstantNum.WINDOWS_HEIGHT);
 
-        // 背景图
-        JLabel bg = new JLabel(new ImageIcon(IMG_CHOICE));
+        // 背景
+        JLabel bg = new JLabel(new ImageIcon(IMG_BG));
         bg.setBounds(0, 0, ConstantNum.WINDOWS_WIDTH, ConstantNum.WINDOWS_HEIGHT);
         this.add(bg);
 
-        // 两个模式按钮左右居中放置（靠近顶部）
-        int totalBtnW = BTN_W * 2;
-        int gap = (ConstantNum.WINDOWS_WIDTH - totalBtnW) / 3;  // 三等分间距
-        int btnY = 30;
+        // === 标题 ===
+        JLabel titleLabel = new JLabel("联 机 对 战", SwingConstants.CENTER);
+        titleLabel.setFont(new Font("微软雅黑", Font.BOLD, 28));
+        titleLabel.setForeground(COLOR_WHITE);
+        titleLabel.setBounds(0, 25, 500, 40);
+        this.add(titleLabel);
 
-        // 23.png — 创建房间
-        JLabel btnCreate = createButton(IMG_23, gap - 10, btnY, BTN_W, BTN_H);
+        // === 上半部分：创建房间 ===
+        JLabel createLabel = new JLabel("我没有房间，创建一个新房间", SwingConstants.CENTER);
+        createLabel.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+        createLabel.setForeground(new Color(200, 200, 220));
+        createLabel.setBounds(0, 75, 500, 25);
+        this.add(createLabel);
+
+        btnCreate = new JButton("创 建 房 间");
+        styleButton(btnCreate, COLOR_BLUE);
+        btnCreate.setBounds(120, 110, 260, 55);
+        btnCreate.setFont(new Font("微软雅黑", Font.BOLD, 22));
         btnCreate.addMouseListener(new MouseAdapter()
         {
-            /**
-             * 功能描述：点击创建房间，连接服务器并发送 CREATE_ROOM 消息
-             * @param e 鼠标事件
-             * @author cyt & Claude
-             * @date 2026/6/2
-             */
             @Override
             public void mouseClicked(MouseEvent e)
             {
-                Log.info("点击：创建房间");
-                createRoom();
+                if (btnCreate.isEnabled())
+                {
+                    Log.info("联机：创建房间");
+                    statusLabel.setText("正在连接服务器...");
+                    setButtonsEnabled(false);
+                    createRoom();
+                }
             }
         });
         this.add(btnCreate);
 
-        // 24.png — 加入房间
-        JLabel btnJoin = createButton(IMG_24, gap * 2 + BTN_W, btnY, BTN_W, BTN_H);
+        // === 分隔线 ===
+        JLabel divider = new JLabel("━━━━━━ 或 ━━━━━━", SwingConstants.CENTER);
+        divider.setFont(new Font("微软雅黑", Font.BOLD, 14));
+        divider.setForeground(new Color(150, 150, 180));
+        divider.setBounds(0, 175, 500, 25);
+        this.add(divider);
+
+        // === 下半部分：加入房间 ===
+        JLabel joinLabel = new JLabel("朋友已创建房间，输入房间号加入", SwingConstants.CENTER);
+        joinLabel.setFont(new Font("微软雅黑", Font.PLAIN, 14));
+        joinLabel.setForeground(new Color(200, 200, 220));
+        joinLabel.setBounds(0, 210, 500, 25);
+        this.add(joinLabel);
+
+        // 房间号输入框
+        roomIdField = new JTextField();
+        roomIdField.setFont(new Font("微软雅黑", Font.BOLD, 28));
+        roomIdField.setHorizontalAlignment(SwingConstants.CENTER);
+        roomIdField.setBounds(140, 245, 220, 50);
+        roomIdField.setBackground(COLOR_DARK);
+        roomIdField.setForeground(COLOR_WHITE);
+        roomIdField.setCaretColor(COLOR_WHITE);
+        roomIdField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(COLOR_BLUE, 2),
+            BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        ));
+        // 输入提示
+        roomIdField.setToolTipText("请输入 4 位数字房间号");
+        this.add(roomIdField);
+
+        // 加入按钮
+        btnJoin = new JButton("加 入 房 间");
+        styleButton(btnJoin, COLOR_GREEN);
+        btnJoin.setBounds(120, 310, 260, 50);
+        btnJoin.setFont(new Font("微软雅黑", Font.BOLD, 20));
         btnJoin.addMouseListener(new MouseAdapter()
         {
-            /**
-             * 功能描述：点击加入房间，读取房间号并发送 JOIN_ROOM 消息
-             * @param e 鼠标事件
-             * @author cyt & Claude
-             * @date 2026/6/2
-             */
             @Override
             public void mouseClicked(MouseEvent e)
             {
-                Log.info("点击：加入房间");
-                joinRoom();
+                if (!btnJoin.isEnabled()) return;
+                String code = roomIdField.getText().trim();
+                if (code.isEmpty())
+                {
+                    statusLabel.setText("⚠ 请先输入房间号！");
+                    return;
+                }
+                if (!code.matches("\\d{4}"))
+                {
+                    statusLabel.setText("⚠ 房间号为 4 位数字，请检查！");
+                    return;
+                }
+                Log.info("联机：加入房间 " + code);
+                statusLabel.setText("正在加入房间 " + code + "...");
+                setButtonsEnabled(false);
+                joinRoom(code);
             }
         });
         this.add(btnJoin);
 
-        // 房间号输入框
-        roomIdField = new JTextField();
-        roomIdField.setBounds(150, btnY + BTN_H + 20, 200, 35);
-        roomIdField.setFont(new Font("微软雅黑", Font.PLAIN, 18));
-        roomIdField.setHorizontalAlignment(SwingConstants.CENTER);
-        this.add(roomIdField);
-
-        // 状态标签
-        statusLabel = new JLabel("输入房间号后点击「加入房间」", SwingConstants.CENTER);
-        statusLabel.setBounds(50, btnY + BTN_H + 60, 400, 30);
+        // === 状态显示 ===
+        statusLabel = new JLabel("输入 4 位房间号，然后点击「加入房间」", SwingConstants.CENTER);
         statusLabel.setFont(new Font("微软雅黑", Font.BOLD, 14));
-        statusLabel.setForeground(new Color(255, 255, 200));
+        statusLabel.setForeground(COLOR_YELLOW);
+        statusLabel.setBounds(30, 375, 440, 30);
         this.add(statusLabel);
 
-        // 返回按钮（左上角）
+        // === 返回按钮 ===
         addBackButton();
 
-        // 确保按钮在最上层
+        // 确保组件在最上层
         this.setComponentZOrder(btnCreate, 0);
         this.setComponentZOrder(btnJoin, 0);
+        this.setComponentZOrder(roomIdField, 0);
+        this.setComponentZOrder(statusLabel, 0);
 
         Log.info("联机对战面板加载完毕");
     }
 
     /**
-     * 功能描述：创建一个可点击的图片按钮
-     * @param imgPath 图片路径
-     * @param x 横坐标
-     * @param y 纵坐标
-     * @param w 宽度
-     * @param h 高度
-     * @return 配置好的 JLabel 按钮
-     * @author cyt & Claude
-     * @date 2026/6/2
+     * 统一样式的按钮
      */
-    private JLabel createButton(String imgPath, int x, int y, int w, int h)
+    private void styleButton(JButton btn, Color bgColor)
     {
-        JLabel label = new JLabel(new ImageIcon(imgPath));
-        label.setBounds(x, y, w, h);
-        label.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        return label;
+        btn.setForeground(Color.WHITE);
+        btn.setBackground(bgColor);
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btn.setContentAreaFilled(true);
+        btn.setBorderPainted(false);
+        btn.setFocusPainted(false);
+        btn.setOpaque(true);
+        // 圆角边框
+        btn.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(bgColor.brighter(), 2),
+            BorderFactory.createEmptyBorder(8, 20, 8, 20)
+        ));
     }
 
     /**
-     * 功能描述：创建房间 —— 连接服务器并发送 CREATE_ROOM
-     * @author cyt & Claude
-     * @date 2026/6/2
+     * 启用/禁用按钮
      */
+    private void setButtonsEnabled(boolean enabled)
+    {
+        btnCreate.setEnabled(enabled);
+        btnJoin.setEnabled(enabled);
+    }
+
+    // ==================== 网络逻辑 ====================
+
     private void createRoom()
     {
-        statusLabel.setText("正在连接服务器...");
         client = new NetworkClient("ws://localhost:8080");
         setupMessageHandler();
         connectAndSend(new Message(MessageType.CREATE_ROOM));
     }
 
-    /**
-     * 功能描述：加入房间 —— 读取房间号，连接服务器并发送 JOIN_ROOM
-     * @author cyt & Claude
-     * @date 2026/6/2
-     */
-    private void joinRoom()
+    private void joinRoom(String code)
     {
-        String code = roomIdField.getText().trim();
-        if (code.isEmpty())
-        {
-            statusLabel.setText("请输入房间号");
-            return;
-        }
-        statusLabel.setText("正在连接服务器...");
         client = new NetworkClient("ws://localhost:8080");
         setupMessageHandler();
-        final String joinCode = code;
-        connectAndSend(new Message(MessageType.JOIN_ROOM).put("roomId", joinCode));
+        connectAndSend(new Message(MessageType.JOIN_ROOM).put("roomId", code));
     }
 
-    /**
-     * 功能描述：在后台线程中连接服务器，连接成功后发送初始消息
-     * @param initialMsg 连接成功后发送的消息
-     * @author cyt & Claude
-     * @date 2026/6/2
-     */
     private void connectAndSend(Message initialMsg)
     {
         new Thread(() -> {
             client.connect();
-            // 轮询等待连接建立
             try
             {
                 for (int i = 0; i < 50 && !client.isConnected(); i++)
-                {
                     Thread.sleep(100);
-                }
             }
             catch (InterruptedException ignored) { }
 
-            if (client.isConnected())
-            {
-                SwingUtilities.invokeLater(() -> client.send(initialMsg));
-            }
-            else
-            {
-                SwingUtilities.invokeLater(() -> statusLabel.setText("连接服务器超时"));
-            }
+            SwingUtilities.invokeLater(() -> {
+                if (client.isConnected())
+                {
+                    client.send(initialMsg);
+                }
+                else
+                {
+                    statusLabel.setText("✗ 连接服务器超时，请检查网络");
+                    setButtonsEnabled(true);
+                }
+            });
         }).start();
     }
 
-    /**
-     * 功能描述：设置 NetworkClient 的消息处理器
-     * @author cyt & Claude
-     * @date 2026/6/2
-     */
     private void setupMessageHandler()
     {
         client.setOnMessage(msg -> {
@@ -218,42 +240,44 @@ public class OnlinePanel extends JPanel
                 {
                     case ROOM_CREATED:
                         roomId = msg.get("roomId", "");
-                        statusLabel.setText("房间号: " + roomId + "，等待对手...");
                         roomIdField.setText(roomId);
+                        statusLabel.setText("✓ 房间创建成功！房间号：" + roomId + "，等待对手加入...");
                         break;
                     case PLAYER_JOINED:
-                        statusLabel.setText(msg.get("playerName", "") + " 已加入！点击准备开始...");
+                        String name = msg.get("playerName", "对手");
+                        statusLabel.setText("✓ " + name + " 已加入房间！准备开始游戏...");
                         break;
                     case GAME_START:
+                        statusLabel.setText("✓ 游戏开始！");
                         startOnlineGame();
                         break;
                     case ERROR:
-                        statusLabel.setText(msg.get("msg", "错误"));
+                        statusLabel.setText("✗ 错误：" + msg.get("msg", "未知错误"));
+                        setButtonsEnabled(true);
                         break;
                 }
             });
         });
+
+        client.setOnDisconnect(() -> {
+            SwingUtilities.invokeLater(() -> {
+                if (statusLabel != null)
+                    statusLabel.setText("✗ 连接断开，请重试");
+                setButtonsEnabled(true);
+            });
+        });
     }
 
-    /**
-     * 功能描述：服务端通知游戏开始，创建联机游戏主窗口
-     * @author cyt & Claude
-     * @date 2026/6/2
-     */
     private void startOnlineGame()
     {
         MainMap mainMap = new MainMap(GameMode.ONLINE);
         RemoteController rc = new RemoteController(mainMap, client);
         mainMap.setGameController(rc);
-        // RemoteController 将处理所有网络通信
         SwingUtilities.getWindowAncestor(this).dispose();
     }
 
-    /**
-     * 功能描述：左上角返回按钮（与 GameCard 的退出按钮风格一致）
-     * @author cyt & Claude
-     * @date 2026/6/2
-     */
+    // ==================== 返回按钮 ====================
+
     private void addBackButton()
     {
         JLabel backBtn = new JLabel(new ImageIcon(IMG_BACK));
@@ -261,42 +285,20 @@ public class OnlinePanel extends JPanel
         backBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         backBtn.addMouseListener(new MouseAdapter()
         {
-            /**
-             * 功能描述：点击返回按钮，断开连接并切换回游戏菜单
-             * @param e 鼠标事件
-             * @author cyt & Claude
-             * @date 2026/6/2
-             */
             @Override
             public void mouseClicked(MouseEvent e)
             {
-                if (client != null && client.isConnected())
-                {
+                if (client != null)
                     client.disconnect();
-                }
                 cardLayout.show(container, "游戏菜单");
                 container.revalidate();
                 container.repaint();
             }
-
-            /**
-             * 功能描述：鼠标进入时切换为高亮返回图标
-             * @param e 鼠标事件
-             * @author cyt & Claude
-             * @date 2026/6/2
-             */
             @Override
             public void mouseEntered(MouseEvent e)
             {
                 backBtn.setIcon(new ImageIcon(IMG_BACK_HOVER));
             }
-
-            /**
-             * 功能描述：鼠标退出时恢复默认返回图标
-             * @param e 鼠标事件
-             * @author cyt & Claude
-             * @date 2026/6/2
-             */
             @Override
             public void mouseExited(MouseEvent e)
             {
