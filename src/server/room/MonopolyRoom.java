@@ -69,7 +69,14 @@ public class MonopolyRoom implements Room
                 state = engine.createInitialState(
                     host.playerName, host.getId(),
                     guest.playerName, guest.getId());
-                broadcast(new Message(MessageType.GAME_START)
+                // 告诉每个客户端各自的角色
+                sendTo(host, new Message(MessageType.GAME_START)
+                    .put("playerIndex", 0)
+                    .put("playerName", "naiLong")
+                    .put("firstPlayer", state.getCurrentPlayer().name));
+                sendTo(guest, new Message(MessageType.GAME_START)
+                    .put("playerIndex", 1)
+                    .put("playerName", "xiaoMei")
                     .put("firstPlayer", state.getCurrentPlayer().name));
                 broadcast(new Message(MessageType.TURN_NOTIFY)
                     .put("player", state.getCurrentPlayer().name));

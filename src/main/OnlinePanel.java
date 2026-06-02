@@ -326,8 +326,10 @@ public class OnlinePanel extends JPanel
                         }
                         break;
                     case GAME_START:
-                        statusLabel.setText("✓ 游戏开始！");
-                        startOnlineGame();
+                        int myIdx = msg.get("playerIndex", 0);
+                        String myName = msg.get("playerName", "naiLong");
+                        statusLabel.setText("✓ 游戏开始！你是 " + myName);
+                        startOnlineGame(myIdx, myName);
                         break;
                     case ERROR:
                         statusLabel.setText("✗ 错误：" + msg.get("msg", "未知错误"));
@@ -346,11 +348,16 @@ public class OnlinePanel extends JPanel
         });
     }
 
-    private void startOnlineGame()
+    private void startOnlineGame(int playerIndex, String playerName)
     {
-        MainMap mainMap = new MainMap(GameMode.ONLINE);
+        MainMap mainMap = new MainMap(GameMode.ONLINE, playerIndex);
         RemoteController rc = new RemoteController(mainMap, client);
+        rc.setLocalPlayerIndex(playerIndex);
+        rc.setMyPlayerName(playerName);
         mainMap.setGameController(rc);
+        // RemoteController 接管 NetworkClient 消息处理
+        rc.setupGameHandler();
+        // 首次 TURN_NOTIFY 已由服务端广播
         SwingUtilities.getWindowAncestor(this).dispose();
     }
 

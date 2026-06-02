@@ -64,14 +64,30 @@ public class MainMap extends JFrame
     };
     //</editor-fold>
 
+    // 联机：本地玩家的索引（0=主机/naiLong, 1=客机/xiaoMei）
+    private int onlinePlayerIndex = 0;
+
     /**
-     * 功能描述：主地图的构造方法
+     * 功能描述：主地图的构造方法（本地模式）
      * @author cyt
      * @date 2026/5/14 14:29
      */
     public MainMap(GameMode gameMode)
     {
+        this(gameMode, 0);
+    }
+
+    /**
+     * 功能描述：主地图的构造方法（联机模式，指定玩家角色）
+     * @param gameMode 游戏模式
+     * @param onlinePlayerIndex 联机模式下本地玩家索引：0=主机/naiLong, 1=客机/xiaoMei
+     * @author cyt & Claude
+     * @date 2026/6/2
+     */
+    public MainMap(GameMode gameMode, int onlinePlayerIndex)
+    {
         this.gameMode = gameMode;
+        this.onlinePlayerIndex = onlinePlayerIndex;
 
         // 导入调试包
         DebugTools.install(this);
