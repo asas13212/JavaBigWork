@@ -67,7 +67,7 @@ public class ModeSelectPanel extends JPanel
             public void mouseClicked(MouseEvent e)
             {
                 Log.info("选择模式：双人对战");
-                new MainMap(false);
+                new MainMap(GameMode.LOCAL_PVP);
                 SwingUtilities.getWindowAncestor(ModeSelectPanel.this).dispose();
             }
         });
@@ -87,7 +87,7 @@ public class ModeSelectPanel extends JPanel
             public void mouseClicked(MouseEvent e)
             {
                 Log.info("选择模式：人机对战");
-                new MainMap(true);
+                new MainMap(GameMode.LOCAL_PVE);
                 SwingUtilities.getWindowAncestor(ModeSelectPanel.this).dispose();
             }
         });
@@ -95,6 +95,27 @@ public class ModeSelectPanel extends JPanel
 
         // 返回按钮（左上角）
         addBackButton();
+
+        // 联机对战按钮（位于下方居中）
+        JButton btnOnline = new JButton("联机对战");
+        btnOnline.setFont(new Font("微软雅黑", Font.BOLD, 22));
+        btnOnline.setForeground(new Color(50, 120, 220));
+        btnOnline.setBounds(150, 340, 200, 50);
+        btnOnline.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnOnline.setContentAreaFilled(false);
+        btnOnline.setBorderPainted(false);
+        btnOnline.addMouseListener(new MouseAdapter()
+        {
+            @Override
+            public void mouseClicked(MouseEvent e)
+            {
+                Log.info("选择模式：联机对战");
+                cardLayout.show(container, "联机对战");
+                container.revalidate();
+                container.repaint();
+            }
+        });
+        this.add(btnOnline);
 
         // 确保按钮在最上层
         this.setComponentZOrder(btn23, 0);

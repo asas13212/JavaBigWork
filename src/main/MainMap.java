@@ -33,7 +33,10 @@ public class MainMap extends JFrame
     static int round = 0;
 
     // AI: 是否为 AI 对战模式
-    private final boolean aiMode;
+    private final GameMode gameMode;
+
+    // 游戏控制器（本地/联机）
+    private GameController gameController;
 
     // AI: AI 自动行动的延迟计时器
     private Timer aiTurnTimer;
@@ -66,9 +69,9 @@ public class MainMap extends JFrame
      * @author cyt
      * @date 2026/5/14 14:29
      */
-    public MainMap(boolean aiMode)
+    public MainMap(GameMode gameMode)
     {
-        this.aiMode = aiMode;
+        this.gameMode = gameMode;
 
         // 导入调试包
         DebugTools.install(this);
@@ -78,6 +81,13 @@ public class MainMap extends JFrame
 
         // 导入玩家与其图片
         loadPlayerAndImg();
+
+        // 初始化游戏控制器
+        if (gameMode == GameMode.LOCAL_PVP || gameMode == GameMode.LOCAL_PVE)
+        {
+            this.gameController = new LocalController(this);
+        }
+        // 联机模式的控制器由 setGameController() 在构造后注入
 
         // 给特殊地块注入回调
         setupSpecialTiles();
@@ -125,7 +135,7 @@ public class MainMap extends JFrame
         players[1].setOtherPlayer(players[0]);
 
         // AI: 如果开启 AI 模式，将玩家2设置为 AI
-        if (aiMode)
+        if (gameMode == GameMode.LOCAL_PVE)
         {
             players[1].setAI(true);
             players[1].setName("AI·xiaoMei");
@@ -235,6 +245,22 @@ public class MainMap extends JFrame
     }
 
     /**
+     * 功能描述：获取游戏控制器
+     * @return 当前游戏控制器（本地/联机）
+     * @author cyt & Claude
+     * @date 2026/6/2
+     */
+    public GameController getGameController() { return gameController; }
+
+    /**
+     * 功能描述：设置游戏控制器（联机模式由外部注入 RemoteController）
+     * @param c 游戏控制器
+     * @author cyt & Claude
+     * @date 2026/6/2
+     */
+    public void setGameController(GameController c) { this.gameController = c; }
+
+    /**
      * 功能描述：渲染道具类 UI
      * @author cyt
      * @date 2026/5/27 14:51
@@ -274,8 +300,8 @@ public class MainMap extends JFrame
                 @Override
                 public void mouseClicked(MouseEvent e)
                 {
-                    // AI 回合时禁止人类点击道具
-                    if (getCurrentPlayer().isAI()) return;
+                    // AI 回合或非本人回合时禁止点击道具
+                    if (getCurrentPlayer().isAI() || (gameController != null && !gameController.isMyTurn())) return;
 
                     switch (def.category) {
                         case SELF -> getCurrentPlayer().use(def.name, getCurrentPlayer());

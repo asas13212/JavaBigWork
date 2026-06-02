@@ -71,6 +71,10 @@ public class Player
     // AI: 地雷放置回调，由 MainMap 注入
     private IntPredicate onMinePlace;
 
+    // 联机: session 标识
+    private String sessionId;
+    private boolean isOnline = false;
+
     // 道具库存：用道具"名字"作为 key，避免 new 出来的 Prop 对象不一致导致数量回弹
     private HashMap<String, Integer> propsCount;
 
@@ -919,6 +923,38 @@ public class Player
     {
         this.barrierAiTargetIndex = index;
     }
+
+    /**
+     * 功能描述：获取联机会话标识
+     * @return sessionId
+     * @author cyt & Claude
+     * @date 2026/6/2
+     */
+    public String getSessionId() { return sessionId; }
+
+    /**
+     * 功能描述：设置联机会话标识
+     * @param id 会话ID
+     * @author cyt & Claude
+     * @date 2026/6/2
+     */
+    public void setSessionId(String id) { this.sessionId = id; }
+
+    /**
+     * 功能描述：检查是否为联机玩家
+     * @return true 表示联机模式
+     * @author cyt & Claude
+     * @date 2026/6/2
+     */
+    public boolean isOnline() { return isOnline; }
+
+    /**
+     * 功能描述：设置联机玩家标志
+     * @param online 是否联机
+     * @author cyt & Claude
+     * @date 2026/6/2
+     */
+    public void setOnline(boolean online) { isOnline = online; }
 
     //</editor-fold>
 

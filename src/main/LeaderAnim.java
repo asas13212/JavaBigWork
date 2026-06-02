@@ -63,6 +63,10 @@ public class LeaderAnim extends JFrame
         // AI: 模式选择面板
         ModeSelectPanel modeSelect = new ModeSelectPanel(cardLayout, jPanel);
         jPanel.add(modeSelect, "模式选择");
+
+        // 联机: 联机对战面板
+        OnlinePanel onlinePanel = new OnlinePanel(cardLayout, jPanel);
+        jPanel.add(onlinePanel, "联机对战");
     }
 
     /**
