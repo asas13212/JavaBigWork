@@ -29,6 +29,9 @@ bin/
 ### Mac OS ###
 .DS_Store
 
+### Dependencies ###
+lib/
+
 ### Build & Release ###
 build/
 release/
