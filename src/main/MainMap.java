@@ -226,6 +226,15 @@ public class MainMap extends JFrame
     }
 
     /**
+     * 功能描述：获取当前玩家的索引
+     * @author cyt & Claude
+     * @date 2026/6/2
+     */
+    public int getCurrentPlayerIndex() {
+        return currentPlayerIndex;
+    }
+
+    /**
      * 功能描述：渲染道具类 UI
      * @author cyt
      * @date 2026/5/27 14:51
