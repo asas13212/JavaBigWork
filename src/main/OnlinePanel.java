@@ -8,6 +8,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.net.Socket;
 
 /**
  * 功能描述：联机对战面板 —— 创建/加入房间，等待对手并启动联机游戏
@@ -195,9 +196,68 @@ public class OnlinePanel extends JPanel
 
     private void createRoom()
     {
+        // 先启动本地服务端（如果还没启动）
+        startLocalServer();
         client = new NetworkClient("ws://localhost:8080");
         setupMessageHandler();
         connectAndSend(new Message(MessageType.CREATE_ROOM));
+    }
+
+    /**
+     * 自动启动本地服务端（后台进程），如果端口已被占用则跳过
+     */
+    private void startLocalServer()
+    {
+        // 快速检测 8080 端口是否已被占用
+        if (isPortOpen("localhost", 8080))
+        {
+            Log.info("服务端已在运行（端口 8080 被占用），跳过启动");
+            return;
+        }
+
+        Log.info("自动启动本地服务端...");
+        statusLabel.setText("正在启动服务端...");
+        new Thread(() -> {
+            try
+            {
+                String classpath = "out;lib/java-websocket-1.5.7.jar;lib/slf4j-api-2.0.9.jar;lib/slf4j-nop-2.0.9.jar";
+                new ProcessBuilder("java", "-cp", classpath, "server.MonopolyServer", "8080")
+                    .redirectErrorStream(true)
+                    .start();
+
+                // 轮询等待就绪
+                for (int i = 0; i < 30; i++)
+                {
+                    Thread.sleep(300);
+                    if (isPortOpen("localhost", 8080))
+                    {
+                        SwingUtilities.invokeLater(() ->
+                            statusLabel.setText("服务端已就绪，正在创建房间..."));
+                        return;
+                    }
+                }
+                SwingUtilities.invokeLater(() ->
+                    statusLabel.setText("⚠ 服务端启动超时，请手动运行 run-server.bat"));
+            }
+            catch (Exception e)
+            {
+                Log.error("启动服务端失败: " + e.getMessage());
+                SwingUtilities.invokeLater(() ->
+                    statusLabel.setText("⚠ 启动服务端失败: " + e.getMessage()));
+            }
+        }).start();
+    }
+
+    private boolean isPortOpen(String host, int port)
+    {
+        try (Socket s = new Socket(host, port))
+        {
+            return true;
+        }
+        catch (Exception e)
+        {
+            return false;
+        }
     }
 
     private void joinRoom(String code)
