@@ -96,14 +96,17 @@ public class ModeSelectPanel extends JPanel
         // 返回按钮（左上角）
         addBackButton();
 
-        // 联机对战按钮（位于下方居中）
-        JButton btnOnline = new JButton("联机对战");
-        btnOnline.setFont(new Font("微软雅黑", Font.BOLD, 22));
-        btnOnline.setForeground(new Color(50, 120, 220));
-        btnOnline.setBounds(150, 340, 200, 50);
+        // 联机对战按钮（位于底部居中，带半透明背景）
+        JButton btnOnline = new JButton("🌐 联 机 对 战");
+        btnOnline.setFont(new Font("微软雅黑", Font.BOLD, 20));
+        btnOnline.setForeground(Color.WHITE);
+        btnOnline.setBackground(new Color(50, 120, 220, 200));
+        btnOnline.setBounds(120, 380, 260, 50);
         btnOnline.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        btnOnline.setContentAreaFilled(false);
-        btnOnline.setBorderPainted(false);
+        btnOnline.setContentAreaFilled(true);
+        btnOnline.setBorderPainted(true);
+        btnOnline.setBorder(BorderFactory.createLineBorder(new Color(80, 160, 255), 2));
+        btnOnline.setFocusPainted(false);
         btnOnline.addMouseListener(new MouseAdapter()
         {
             @Override
@@ -120,6 +123,7 @@ public class ModeSelectPanel extends JPanel
         // 确保按钮在最上层
         this.setComponentZOrder(btn23, 0);
         this.setComponentZOrder(btn24, 0);
+        this.setComponentZOrder(btnOnline, 0);
 
         Log.info("模式选择面板加载完毕");
     }
