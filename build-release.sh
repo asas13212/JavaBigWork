@@ -37,7 +37,7 @@ if [ ! -f "$JAVA" ]; then
     echo -e "${RED}错误: 找不到 JDK 25，请修改 JDK_HOME 变量${NC}"
     exit 1
 fi
-echo -e "[1/5] JDK: $($JAVA --version 2>&1 | head -1)"
+echo -e "[1/5] JDK: $("$JAVA" --version 2>&1 | head -1)"
 
 # ---- 2. 清理并编译 ----
 echo -e "[2/5] 编译项目..."
@@ -48,7 +48,7 @@ mkdir -p "$OUT_DIR" "$BUILD_DIR" "$RELEASE_DIR"
 cp -r src/img "$OUT_DIR/" 2>/dev/null || true
 
 # 编译所有 Java 文件
-$JAVAC -encoding UTF-8 -d "$OUT_DIR" -sourcepath src $(find src -name "*.java")
+"$JAVAC" -encoding UTF-8 -d "$OUT_DIR" -sourcepath src $(find src -name "*.java")
 
 echo -e "      编译完成"
 
@@ -59,30 +59,38 @@ echo -e "[3/5] 打包 JAR..."
 echo "Main-Class: $MAIN_CLASS" > "$BUILD_DIR/MANIFEST.MF"
 echo "" >> "$BUILD_DIR/MANIFEST.MF"
 
-# 打包
-cd "$OUT_DIR"
-"$JAR" cfm "../../$BUILD_DIR/$APP_NAME.jar" "../../$BUILD_DIR/MANIFEST.MF" .
-cd - > /dev/null
+# 打包（用绝对路径，避免 Windows 路径问题）
+"$JAR" cfm "$(pwd)/$BUILD_DIR/$APP_NAME.jar" "$(pwd)/$BUILD_DIR/MANIFEST.MF" -C "$(pwd)/$OUT_DIR" .
 
 echo -e "      JAR 已生成: $BUILD_DIR/$APP_NAME.jar"
 
-# ---- 4. 生成 EXE 安装包 ----
-echo -e "[4/5] 生成 EXE 安装包（含 JRE）..."
+# ---- 4. 生成免安装绿色版（不需要 WiX） ----
+echo -e "[4/5] 生成免安装绿色版..."
 "$JPACKAGE" \
   --name "$APP_NAME" \
   --app-version "$APP_VERSION" \
   --input "$BUILD_DIR" \
   --main-jar "$APP_NAME.jar" \
   --main-class "$MAIN_CLASS" \
-  --type exe \
-  --dest "$RELEASE_DIR" \
-  --win-console
+  --type app-image \
+  --dest "$RELEASE_DIR"
 
-echo -e "      EXE 安装包已生成"
+echo -e "      绿色版已生成: $RELEASE_DIR/$APP_NAME/"
 
-# ---- 5. 尝试生成 MSI 安装包（需要 WiX） ----
-echo -e "[5/5] 尝试生成 MSI 安装包..."
-if command -v candle &> /dev/null; then
+# ---- 5. 尝试生成 EXE/MSI 安装包（需要 WiX） ----
+echo -e "[5/5] 尝试生成安装包..."
+if command -v light &> /dev/null || command -v wix &> /dev/null; then
+    "$JPACKAGE" \
+      --name "$APP_NAME" \
+      --app-version "$APP_VERSION" \
+      --input "$BUILD_DIR" \
+      --main-jar "$APP_NAME.jar" \
+      --main-class "$MAIN_CLASS" \
+      --type exe \
+      --dest "$RELEASE_DIR" \
+      --win-console
+    echo -e "      EXE 安装包已生成"
+
     "$JPACKAGE" \
       --name "$APP_NAME" \
       --app-version "$APP_VERSION" \
@@ -96,8 +104,9 @@ if command -v candle &> /dev/null; then
       --win-shortcut
     echo -e "      MSI 安装包已生成"
 else
-    echo -e "      ${YELLOW}未检测到 WiX Toolset，跳过 MSI 生成${NC}"
-    echo -e "      ${YELLOW}如需 MSI，请安装: https://wixtoolset.org/${NC}"
+    echo -e "      ${YELLOW}未检测到 WiX Toolset，跳过安装包生成${NC}"
+    echo -e "      ${YELLOW}安装 WiX 后可生成 EXE/MSI: winget install WiXToolset.WiXToolset -e${NC}"
+    echo -e "      ${YELLOW}绿色版可直接使用，位于 $RELEASE_DIR/$APP_NAME/${NC}"
 fi
 
 # ---- 完成 ----
