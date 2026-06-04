@@ -40,6 +40,8 @@ public class RemoteController implements GameController
     }
 
     // ===== TURN =====
+    private int lastRound = 0;
+
     private void handleTurnNotify(Message msg)
     {
         String who = msg.get("player", "");
@@ -48,7 +50,11 @@ public class RemoteController implements GameController
         int pIdx = who.equals("naiLong") ? 0 : 1;
         mainMap.setCurrentPlayerIndex(pIdx);
 
-        Log.info("====== 第 " + round + " 回合 ======");
+        if (round != lastRound)
+        {
+            lastRound = round;
+            Log.info("====== 第 " + round + " 回合 ======");
+        }
         Log.info("轮到 " + who + (myTurn ? "（我）" : "（对方）") + " 行动");
         mainMap.refreshLayers();
     }
