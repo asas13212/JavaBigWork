@@ -35,7 +35,7 @@ public class MonopolyEngine implements GameEngine
         GameState.PlayerSnapshot p1 = new GameState.PlayerSnapshot();
         p1.name = name1; p1.sessionId = sid1; p1.money = 10000; p1.hp = 100;
         s.players.add(p0); s.players.add(p1);
-        s.currentPlayerIndex = 0; s.phase = "rolling";
+        s.currentPlayerIndex = 0; s.phase = "rolling"; s.round = 1;
         return s;
     }
 
@@ -55,7 +55,6 @@ public class MonopolyEngine implements GameEngine
             if (pos == 0) p.money += START_BONUS;
         }
         p.positionIndex = pos;
-        state.round++;
 
         List<EngineEvent> events = new ArrayList<>();
         events.add(EngineEvent.broadcast(
@@ -71,6 +70,7 @@ public class MonopolyEngine implements GameEngine
     // === 回合结束 ===
     private List<EngineEvent> handleTurnEnd(GameState state)
     {
+        int oldIdx = state.currentPlayerIndex;
         state.currentPlayerIndex = (state.currentPlayerIndex + 1) % 2;
         for (int i = 0; i < 2; i++)
         {
@@ -82,6 +82,8 @@ public class MonopolyEngine implements GameEngine
             }
             else break;
         }
+        // 回到玩家0时回合+1（两人都走完才算一回合）
+        if (oldIdx == 1 && state.currentPlayerIndex == 0) state.round++;
         return List.of(EngineEvent.broadcast(
             new Message(MessageType.TURN_NOTIFY)
                 .put("player", state.getCurrentPlayer().name).put("round", state.round)));

@@ -135,15 +135,16 @@ public class DiceController
         Log.info(map.getCurrentPlayer().getName() + " 投掷出了 " + diceValue + " 点");
         if (map.getCurrentPlayer().isInToxic())
             map.getCurrentPlayer().hpDecrease(3);
-        map.roundIncrease();
 
         if (useServerValue)
         {
-            // 联机：播放动画后触发回调（走路）
+            // 联机：播放动画后触发回调（走路），回合由服务端控制
             currentDiceFrame = 0;
             startDiceAnimation();
             return;
         }
+
+        map.roundIncrease();
 
         boolean isSpecialDice = map.getCurrentPlayer().hasNextDiceSides();
         boolean isFixedDice = map.getCurrentPlayer().hasNextDiceValue();
