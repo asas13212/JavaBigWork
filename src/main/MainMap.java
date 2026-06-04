@@ -308,6 +308,19 @@ public class MainMap extends JFrame
     }
 
     /**
+     * 功能描述：获取道具栏应显示的玩家（联机模式始终显示本地玩家，本地模式显示当前回合玩家）
+     * @return 道具栏对应的玩家
+     * @author cyt & Claude
+     * @date 2026/6/4
+     */
+    private Player getPropDisplayPlayer()
+    {
+        if (gameMode == GameMode.ONLINE)
+            return players[onlinePlayerIndex];
+        return getCurrentPlayer();
+    }
+
+    /**
      * 功能描述：渲染道具类 UI
      * @author cyt
      * @date 2026/5/27 14:51
@@ -316,7 +329,7 @@ public class MainMap extends JFrame
     {
         for (PropDef def : PROP_DEFS)
         {
-            Integer count = getCurrentPlayer().getProps().get(def.name);
+            Integer count = getPropDisplayPlayer().getProps().get(def.name);
             if (count != null && count > 0)
             {
                 g.drawString(String.valueOf(count), def.countX, def.countY);
@@ -814,9 +827,10 @@ public class MainMap extends JFrame
             label.setBounds(0, 0, 0, 0);
         }
 
+        Player displayPlayer = getPropDisplayPlayer();
         for (int i = 0; i < PROP_DEFS.length; i++) {
             PropDef def = PROP_DEFS[i];
-            Integer count = getCurrentPlayer().getProps().get(def.name);
+            Integer count = displayPlayer.getProps().get(def.name);
             if (count != null && count > 0) {
                 propJLabels[i].setBounds(def.boundsX, def.boundsY, def.boundsW, def.boundsH);
                 propJLabels[i].setVisible(true);

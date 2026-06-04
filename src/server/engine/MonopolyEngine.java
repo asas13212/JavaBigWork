@@ -20,7 +20,7 @@ public class MonopolyEngine implements GameEngine
         return switch (action.getType())
         {
             case ROLL_DICE -> handleRollDice(state, playerIndex);
-            case TURN_END  -> handleTurnEnd(state);
+            case TURN_END  -> handleTurnEnd(state, action);
             case LEAVE_ROOM -> handleLeave(state, playerIndex);
             default        -> relayToOther(state, playerIndex, action);
         };
@@ -68,25 +68,59 @@ public class MonopolyEngine implements GameEngine
     }
 
     // === 回合结束 ===
-    private List<EngineEvent> handleTurnEnd(GameState state)
+    private List<EngineEvent> handleTurnEnd(GameState state, Message action)
     {
+        // 从客户端同步 barrierStopTurns 和 status（如监狱状态）
+        GameState.PlayerSnapshot cur = state.getCurrentPlayer();
+        if (cur != null && action.has("barrierStopTurns"))
+        {
+            cur.barrierStopTurns = action.get("barrierStopTurns", 0);
+            cur.status = action.get("status");
+        }
+
         int oldIdx = state.currentPlayerIndex;
         state.currentPlayerIndex = (state.currentPlayerIndex + 1) % 2;
+
+        String skippedPlayer = null;
+        boolean skippedIsPrisoned = false;
+        int skippedRemaining = 0;
+
         for (int i = 0; i < 2; i++)
         {
             GameState.PlayerSnapshot next = state.getCurrentPlayer();
             if (next.barrierStopTurns > 0)
             {
+                boolean wasPrisoned = "isPrisoned".equals(next.status);
                 next.barrierStopTurns--;
+                if (wasPrisoned && next.barrierStopTurns == 0)
+                    next.status = null;
+                skippedPlayer = next.name;
+                skippedIsPrisoned = wasPrisoned;
+                skippedRemaining = next.barrierStopTurns;
                 state.currentPlayerIndex = (state.currentPlayerIndex + 1) % 2;
             }
             else break;
         }
         // 回到玩家0时回合+1（两人都走完才算一回合）
         if (oldIdx == 1 && state.currentPlayerIndex == 0) state.round++;
-        return List.of(EngineEvent.broadcast(
-            new Message(MessageType.TURN_NOTIFY)
-                .put("player", state.getCurrentPlayer().name).put("round", state.round)));
+
+        // 构建 TURN_NOTIFY，附带双方 barrierStopTurns 以便客户端同步
+        GameState.PlayerSnapshot p0 = state.players.get(0);
+        GameState.PlayerSnapshot p1 = state.players.get(1);
+        Message notify = new Message(MessageType.TURN_NOTIFY)
+                .put("player", state.getCurrentPlayer().name)
+                .put("round", state.round)
+                .put("p0StopTurns", p0.barrierStopTurns)
+                .put("p0Status", p0.status)
+                .put("p1StopTurns", p1.barrierStopTurns)
+                .put("p1Status", p1.status);
+        if (skippedPlayer != null)
+        {
+            notify.put("skipped", skippedPlayer)
+                 .put("skippedIsPrisoned", skippedIsPrisoned)
+                 .put("skippedRemaining", skippedRemaining);
+        }
+        return List.of(EngineEvent.broadcast(notify));
     }
 
     // === 转发给对方 ===

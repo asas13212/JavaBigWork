@@ -50,6 +50,27 @@ public class RemoteController implements GameController
         int pIdx = who.equals("naiLong") ? 0 : 1;
         mainMap.setCurrentPlayerIndex(pIdx);
 
+        // 同步双方 barrierStopTurns（监狱/路障状态），服务器为权威来源
+        Player p0 = mainMap.getPlayer(0);
+        Player p1 = mainMap.getPlayer(1);
+        if (p0 != null) { p0.setBarrierStopTurns(msg.get("p0StopTurns", 0)); p0.setStatus(msg.get("p0Status")); }
+        if (p1 != null) { p1.setBarrierStopTurns(msg.get("p1StopTurns", 0)); p1.setStatus(msg.get("p1Status")); }
+
+        // 处理被跳过的玩家消息
+        String skipped = msg.get("skipped");
+        if (skipped != null && skipped.equals(myPlayerName))
+        {
+            boolean isPrisoned = msg.get("skippedIsPrisoned", false);
+            int remaining = msg.get("skippedRemaining", 0);
+            if (isPrisoned)
+            {
+                if (remaining == 0)
+                    Log.info(myPlayerName + " 刑满释放！");
+                else
+                    Log.info(myPlayerName + " 还在坐牢，剩余 " + remaining + " 回合");
+            }
+        }
+
         if (round != lastRound)
         {
             lastRound = round;
@@ -134,7 +155,12 @@ public class RemoteController implements GameController
     { client.send(new Message(MessageType.UPGRADE).put("choice", yes)); }
 
     public void turnEnded()
-    { client.send(new Message(MessageType.TURN_END)); }
+    {
+        Player cp = mainMap.getCurrentPlayer();
+        client.send(new Message(MessageType.TURN_END)
+                .put("barrierStopTurns", cp.getBarrierStopTurns())
+                .put("status", cp.getStatus()));
+    }
 
     @Override public GameMode getMode() { return GameMode.ONLINE; }
     @Override public boolean isMyTurn() { return myTurn; }
