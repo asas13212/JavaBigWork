@@ -79,7 +79,8 @@ public class MonopolyRoom implements Room
                     .put("playerName", "xiaoMei")
                     .put("firstPlayer", state.getCurrentPlayer().name));
                 broadcast(new Message(MessageType.TURN_NOTIFY)
-                    .put("player", state.getCurrentPlayer().name));
+                    .put("player", state.getCurrentPlayer().name)
+                    .put("round", state.round));
             }
             return;
         }

@@ -64,12 +64,10 @@ public class RemoteController implements GameController
 
         if (pIdx == localPlayerIndex)
         {
-            // DiceController.executeRoll 里已有 Log，这里补充回合头
             mainMap.getDiceController().triggerRollWithValue(value);
         }
         else
         {
-            Log.info("====== 第 " + round + " 回合 ======");
             Log.info(player + " 投掷出了 " + value + " 点");
             mainMap.getDiceController().showResultOnly(value);
         }
