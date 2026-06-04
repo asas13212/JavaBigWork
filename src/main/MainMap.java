@@ -90,7 +90,7 @@ public class MainMap extends JFrame
         this.onlinePlayerIndex = onlinePlayerIndex;
 
         // 导入调试包
-        DebugTools.install(this);
+//        DebugTools.install(this);
 
         // 导入与创造道具图片
         loadPropsAndImg();

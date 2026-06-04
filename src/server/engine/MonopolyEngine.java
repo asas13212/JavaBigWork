@@ -59,9 +59,12 @@ public class MonopolyEngine implements GameEngine
 
         List<EngineEvent> events = new ArrayList<>();
         events.add(EngineEvent.broadcast(
-            new Message(MessageType.DICE_RESULT).put("value", dice).put("player", p.name)));
+            new Message(MessageType.DICE_RESULT)
+                .put("value", dice).put("player", p.name).put("round", state.round)));
         events.add(EngineEvent.broadcast(
-            new Message(MessageType.WALK_ANIM).put("steps", steps).put("player", p.name)));
+            new Message(MessageType.WALK_ANIM)
+                .put("steps", steps).put("player", p.name)
+                .put("finalTile", steps.isEmpty() ? p.positionIndex : steps.get(steps.size()-1))));
         return events;
     }
 
@@ -69,7 +72,6 @@ public class MonopolyEngine implements GameEngine
     private List<EngineEvent> handleTurnEnd(GameState state)
     {
         state.currentPlayerIndex = (state.currentPlayerIndex + 1) % 2;
-        // 跳过被停止的玩家
         for (int i = 0; i < 2; i++)
         {
             GameState.PlayerSnapshot next = state.getCurrentPlayer();
@@ -81,7 +83,8 @@ public class MonopolyEngine implements GameEngine
             else break;
         }
         return List.of(EngineEvent.broadcast(
-            new Message(MessageType.TURN_NOTIFY).put("player", state.getCurrentPlayer().name)));
+            new Message(MessageType.TURN_NOTIFY)
+                .put("player", state.getCurrentPlayer().name).put("round", state.round)));
     }
 
     // === 转发给对方 ===

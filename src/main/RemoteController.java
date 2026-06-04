@@ -2,6 +2,7 @@ package main;
 
 import shared.Message;
 import shared.MessageType;
+import debug.Log;
 import javax.swing.*;
 import java.util.List;
 
@@ -17,17 +18,13 @@ public class RemoteController implements GameController
     private int localPlayerIndex = 0;
 
     public RemoteController(MainMap mainMap, NetworkClient client)
-    {
-        this.mainMap = mainMap;
-        this.client = client;
-    }
+    { this.mainMap = mainMap; this.client = client; }
 
     public void setMyPlayerName(String name) { this.myPlayerName = name; }
     public String getMyPlayerName() { return myPlayerName; }
     public void setMyTurn(boolean turn) { this.myTurn = turn; }
     public void setLocalPlayerIndex(int idx) { this.localPlayerIndex = idx; }
 
-    /** 游戏开始后接管消息 */
     public void setupGameHandler()
     {
         client.setOnMessage(msg -> SwingUtilities.invokeLater(() -> {
@@ -46,9 +43,13 @@ public class RemoteController implements GameController
     private void handleTurnNotify(Message msg)
     {
         String who = msg.get("player", "");
+        int round = msg.get("round", 0);
         setMyTurn(myPlayerName.equals(who));
         int pIdx = who.equals("naiLong") ? 0 : 1;
         mainMap.setCurrentPlayerIndex(pIdx);
+
+        Log.info("====== 第 " + round + " 回合 ======");
+        Log.info("轮到 " + who + (myTurn ? "（我）" : "（对方）") + " 行动");
         mainMap.refreshLayers();
     }
 
@@ -57,41 +58,52 @@ public class RemoteController implements GameController
     {
         String player = msg.get("player", "");
         int value = msg.get("value", 1);
+        int round = msg.get("round", 0);
         int pIdx = player.equals("naiLong") ? 0 : 1;
         mainMap.setCurrentPlayerIndex(pIdx);
 
         if (pIdx == localPlayerIndex)
-            mainMap.getDiceController().triggerRollWithValue(value);  // 动画+走路
+        {
+            // DiceController.executeRoll 里已有 Log，这里补充回合头
+            mainMap.getDiceController().triggerRollWithValue(value);
+        }
         else
-            mainMap.getDiceController().showResultOnly(value);        // 只显示点数
+        {
+            Log.info("====== 第 " + round + " 回合 ======");
+            Log.info(player + " 投掷出了 " + value + " 点");
+            mainMap.getDiceController().showResultOnly(value);
+        }
     }
 
-    // ===== WALK ===== (远程玩家)
+    // ===== WALK (远程玩家) =====
     @SuppressWarnings("unchecked")
     private void handleWalkAnim(Message msg)
     {
         String player = msg.get("player", "");
         int pIdx = player.equals("naiLong") ? 0 : 1;
-        if (pIdx == localPlayerIndex) return; // 本地走路由骰子回调自动触发
+        if (pIdx == localPlayerIndex) return;
 
         List<Integer> steps = (List<Integer>) msg.get("steps");
         if (steps == null || steps.isEmpty()) return;
+
+        int finalTile = msg.get("finalTile", steps.get(steps.size() - 1));
+        Log.info(player + " 走了 " + steps.size() + " 步，到达格子 #" + finalTile);
         mainMap.startRemoteWalk(pIdx, steps);
     }
 
-    // ===== STATE SYNC =====
+    // ===== 状态同步 =====
     private void handleGameUpdate(Message msg)
     {
         String event = msg.get("event", "");
         if (event == null) return;
         Player p0 = mainMap.getPlayer(0), p1 = mainMap.getPlayer(1);
+
         switch (event)
         {
-            case "money": case "hp": case "props": case "land": case "position":
-                // 全量同步由具体字段驱动
-                break;
-            case "turn_end":
-                // 对方回合结束，状态已在 DICE_RESULT 时更新
+            case "BUY_LAND":
+            case "UPGRADE":
+            case "USE_PROP":
+                // relayToOther 转发的消息，后续完善
                 break;
         }
         mainMap.refreshLayers();
@@ -99,7 +111,9 @@ public class RemoteController implements GameController
 
     private void handleGameOver(Message msg)
     {
-        JOptionPane.showMessageDialog(mainMap, msg.get("winner", "") + " 获胜！");
+        String winner = msg.get("winner", "");
+        Log.info("游戏结束！" + winner + " 获胜！");
+        JOptionPane.showMessageDialog(mainMap, winner + " 获胜！游戏结束");
     }
 
     // ===== 操作 → 服务端 =====
@@ -115,11 +129,8 @@ public class RemoteController implements GameController
     @Override public void onUpgradeChoice(boolean yes)
     { client.send(new Message(MessageType.UPGRADE).put("choice", yes)); }
 
-    /** 本地回合走完（骰子→走路→格子逻辑全跑完），通知服务端切回合 */
     public void turnEnded()
-    {
-        client.send(new Message(MessageType.TURN_END));
-    }
+    { client.send(new Message(MessageType.TURN_END)); }
 
     @Override public GameMode getMode() { return GameMode.ONLINE; }
     @Override public boolean isMyTurn() { return myTurn; }
