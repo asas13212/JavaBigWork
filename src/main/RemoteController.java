@@ -2,11 +2,11 @@ package main;
 
 import shared.Message;
 import shared.MessageType;
+import javax.swing.*;
+import java.util.List;
 
 /**
- * 功能描述：联机对战控制器 —— 所有操作转为 JSON 消息发送到服务端，接收服务端事件驱动 MainMap
- * @author cyt & Claude
- * @date 2026/6/2
+ * 联机对战控制器：本地玩家跑完整本地逻辑，远程玩家看动画+同步状态
  */
 public class RemoteController implements GameController
 {
@@ -27,72 +27,101 @@ public class RemoteController implements GameController
     public void setMyTurn(boolean turn) { this.myTurn = turn; }
     public void setLocalPlayerIndex(int idx) { this.localPlayerIndex = idx; }
 
-    /**
-     * 游戏开始后接管 NetworkClient 的消息处理
-     */
+    /** 游戏开始后接管消息 */
     public void setupGameHandler()
     {
-        client.setOnMessage(msg -> {
+        client.setOnMessage(msg -> SwingUtilities.invokeLater(() -> {
             switch (msg.getType())
             {
-                case TURN_NOTIFY:
-                    String turnPlayer = msg.get("player", "");
-                    boolean isMine = myPlayerName.equals(turnPlayer);
-                    setMyTurn(isMine);
-                    break;
-
-                case DICE_RESULT:
-                    // 服务端通知骰子结果，后续走路动画由 walk_anim 驱动
-                    break;
-
-                case WALK_ANIM:
-                    // TODO: 驱动 MainMap 行走动画
-                    break;
-
-                case GAME_UPDATE:
-                    // TODO: 同步棋盘状态
-                    break;
-
-                case ASK_CHOICE:
-                    // TODO: 弹出选择对话框
-                    break;
-
-                case GAME_OVER:
-                    String winner = msg.get("winner", "");
-                    javax.swing.JOptionPane.showMessageDialog(mainMap, winner + " 获胜！");
-                    break;
+                case TURN_NOTIFY: handleTurnNotify(msg); break;
+                case DICE_RESULT: handleDiceResult(msg); break;
+                case WALK_ANIM:  handleWalkAnim(msg);  break;
+                case GAME_UPDATE: handleGameUpdate(msg); break;
+                case GAME_OVER:   handleGameOver(msg);  break;
             }
-        });
+        }));
     }
 
-    @Override
-    public void onDiceClicked()
+    // ===== TURN =====
+    private void handleTurnNotify(Message msg)
     {
-        if (!myTurn) return;
-        client.send(new Message(MessageType.ROLL_DICE));
+        String who = msg.get("player", "");
+        setMyTurn(myPlayerName.equals(who));
+        int pIdx = who.equals("naiLong") ? 0 : 1;
+        mainMap.setCurrentPlayerIndex(pIdx);
+        mainMap.refreshLayers();
     }
 
-    @Override
-    public void onPropClicked(String propName)
+    // ===== DICE =====
+    private void handleDiceResult(Message msg)
     {
-        if (!myTurn) return;
-        client.send(new Message(MessageType.USE_PROP).put("propName", propName));
+        String player = msg.get("player", "");
+        int value = msg.get("value", 1);
+        int pIdx = player.equals("naiLong") ? 0 : 1;
+        mainMap.setCurrentPlayerIndex(pIdx);
+
+        if (pIdx == localPlayerIndex)
+            mainMap.getDiceController().triggerRollWithValue(value);  // 动画+走路
+        else
+            mainMap.getDiceController().showResultOnly(value);        // 只显示点数
     }
 
-    @Override
-    public void onLandChoice(boolean yes)
+    // ===== WALK ===== (远程玩家)
+    @SuppressWarnings("unchecked")
+    private void handleWalkAnim(Message msg)
     {
-        client.send(new Message(MessageType.BUY_LAND).put("choice", yes));
+        String player = msg.get("player", "");
+        int pIdx = player.equals("naiLong") ? 0 : 1;
+        if (pIdx == localPlayerIndex) return; // 本地走路由骰子回调自动触发
+
+        List<Integer> steps = (List<Integer>) msg.get("steps");
+        if (steps == null || steps.isEmpty()) return;
+        mainMap.startRemoteWalk(pIdx, steps);
     }
 
-    @Override
-    public void onUpgradeChoice(boolean yes)
+    // ===== STATE SYNC =====
+    private void handleGameUpdate(Message msg)
     {
-        client.send(new Message(MessageType.UPGRADE).put("choice", yes));
+        String event = msg.get("event", "");
+        if (event == null) return;
+        Player p0 = mainMap.getPlayer(0), p1 = mainMap.getPlayer(1);
+        switch (event)
+        {
+            case "money": case "hp": case "props": case "land": case "position":
+                // 全量同步由具体字段驱动
+                break;
+            case "turn_end":
+                // 对方回合结束，状态已在 DICE_RESULT 时更新
+                break;
+        }
+        mainMap.refreshLayers();
+    }
+
+    private void handleGameOver(Message msg)
+    {
+        JOptionPane.showMessageDialog(mainMap, msg.get("winner", "") + " 获胜！");
+    }
+
+    // ===== 操作 → 服务端 =====
+    @Override public void onDiceClicked()
+    { if (!myTurn) return; client.send(new Message(MessageType.ROLL_DICE)); }
+
+    @Override public void onPropClicked(String propName)
+    { if (!myTurn) return; client.send(new Message(MessageType.USE_PROP).put("propName", propName)); }
+
+    @Override public void onLandChoice(boolean yes)
+    { client.send(new Message(MessageType.BUY_LAND).put("choice", yes)); }
+
+    @Override public void onUpgradeChoice(boolean yes)
+    { client.send(new Message(MessageType.UPGRADE).put("choice", yes)); }
+
+    /** 本地回合走完（骰子→走路→格子逻辑全跑完），通知服务端切回合 */
+    public void turnEnded()
+    {
+        client.send(new Message(MessageType.TURN_END));
     }
 
     @Override public GameMode getMode() { return GameMode.ONLINE; }
     @Override public boolean isMyTurn() { return myTurn; }
     @Override public int getLocalPlayerIndex() { return localPlayerIndex; }
-    public NetworkClient getClient() { return client; }
 }

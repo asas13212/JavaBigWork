@@ -81,38 +81,72 @@ public class DiceController
                 if (isDiceRolling || map.getCurrentPlayer().isWalking())
                     return;
 
-                executeRoll();
+                // 联机模式：通过 GameController 发送到服务端
+                GameController gc = map.getGameController();
+                if (gc != null && gc.getMode() == GameMode.ONLINE)
+                {
+                    gc.onDiceClicked();
+                    return;
+                }
+
+                executeRoll(false, -1);
             }
         });
     }
 
-    /**
-     * AI: 供外部（MainMap）调用的自动掷骰方法
-     */
+    /** AI 自动掷骰 */
     public void triggerRoll()
     {
-        if (isDiceRolling || map.getCurrentPlayer().isWalking())
-            return;
-        executeRoll();
+        if (isDiceRolling || map.getCurrentPlayer().isWalking()) return;
+        executeRoll(false, -1);
     }
 
-    /**
-     * 功能描述：执行掷骰核心逻辑，处理普通骰子、万能骰子和20面大骰子
-     * @author cyt & Claude
-     * @date 2026/6/1 21:00
-     */
-    private void executeRoll()
+    /** 联机：服务端点数，触发完整动画+走路 */
+    public void triggerRollWithValue(int serverValue)
+    {
+        if (isDiceRolling || map.getCurrentPlayer().isWalking()) return;
+        executeRoll(true, serverValue);
+    }
+
+    /** 联机：仅显示对方骰子结果，不触发走路 */
+    public void showResultOnly(int serverValue)
+    {
+        diceValue = serverValue;
+        diceButton.setIcon(iconNormal);
+        map.refreshLayers();
+    }
+
+    private void executeRoll(boolean useServerValue, int serverValue)
     {
         isDiceRolling = true;
         diceButton.setIcon(iconClicked);
-        boolean isSpecialDice = map.getCurrentPlayer().hasNextDiceSides();
-        boolean isFixedDice = map.getCurrentPlayer().hasNextDiceValue();
-        diceValue = map.getCurrentPlayer().rollDice();
+
+        if (useServerValue)
+        {
+            diceValue = serverValue;
+        }
+        else
+        {
+            boolean isSpecialDice = map.getCurrentPlayer().hasNextDiceSides();
+            boolean isFixedDice = map.getCurrentPlayer().hasNextDiceValue();
+            diceValue = map.getCurrentPlayer().rollDice();
+        }
 
         Log.info(map.getCurrentPlayer().getName() + " 投掷出了 " + diceValue + " 点");
         if (map.getCurrentPlayer().isInToxic())
             map.getCurrentPlayer().hpDecrease(3);
         map.roundIncrease();
+
+        if (useServerValue)
+        {
+            // 联机：播放动画后触发回调（走路）
+            currentDiceFrame = 0;
+            startDiceAnimation();
+            return;
+        }
+
+        boolean isSpecialDice = map.getCurrentPlayer().hasNextDiceSides();
+        boolean isFixedDice = map.getCurrentPlayer().hasNextDiceValue();
 
         if (isFixedDice)
         {

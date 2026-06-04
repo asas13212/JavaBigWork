@@ -274,7 +274,38 @@ public class MainMap extends JFrame
      * @author cyt & Claude
      * @date 2026/6/2
      */
-    public void setGameController(GameController c) { this.gameController = c; }
+    public void setGameController(GameController c) {
+        this.gameController = c;
+        if (c != null && c.getMode() == GameMode.ONLINE)
+            for (Player p : players) { p.setGameController(c); p.setOnline(true); }
+    }
+
+    public void setCurrentPlayerIndex(int idx) { this.currentPlayerIndex = idx; }
+    public Player getPlayer(int idx) { return players[idx]; }
+    public DiceController getDiceController() { return diceController; }
+
+    /** 联机：远程玩家的行走动画 */
+    public void startRemoteWalk(int playerIndex, java.util.List<Integer> steps)
+    {
+        Player p = players[playerIndex];
+        if (p == null || steps.isEmpty()) return;
+        int savedIndex = currentPlayerIndex;
+        currentPlayerIndex = playerIndex;
+        p.startWalk(steps.size());
+        if (walkTimer != null && walkTimer.isRunning()) walkTimer.stop();
+        walkTimer = new Timer(200, evt -> {
+            boolean done = p.advanceOneStep();
+            refreshLayers();
+            if (done)
+            {
+                ((Timer) evt.getSource()).stop();
+                p.resetWalkFrame();
+                refreshLayers();
+                currentPlayerIndex = savedIndex;
+            }
+        });
+        walkTimer.start();
+    }
 
     /**
      * 功能描述：渲染道具类 UI
@@ -563,6 +594,11 @@ public class MainMap extends JFrame
      */
     public void nextPlayer()
     {
+        // 联机模式：本地回合结束，通知服务端切回合
+        if (gameMode == GameMode.ONLINE) {
+            if (gameController instanceof RemoteController rc) rc.turnEnded();
+            return;
+        }
         // 切换逻辑真是精妙
         for (int i = 0; i < players.length; i++)
         {

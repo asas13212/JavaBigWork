@@ -57,101 +57,88 @@ public abstract class Land extends Tile
     {
         if (this.owner == null)
         {
-            // AI: AI 玩家自动决定是否购买
+            // AI
             if (player.isAI())
             {
-                if (AIDecision.shouldBuyLand(player, this))
-                {
-                    if (player.getMoney() >= priceLevelUp[houseLevel])
-                    {
-                        player.moneyDecrease(priceLevelUp[houseLevel]);
-                        this.setOwner(player);
-                        player.addTilesOwned(this);
-                        AIDecision.showAIMessage(player.getName() + " 购买了 " + this.getName()
-                                + "，花费 $" + priceLevelUp[houseLevel]);
-                    }
-                }
-                return;
-            }
-
-            int result = JOptionPane.showOptionDialog(
-                    null,
-                    "购买当前房产:" + this.getName()  +"? 价格是" + this.getCurrentPrice() ,
-                    "确认",
-                    JOptionPane.YES_NO_CANCEL_OPTION,
-                    JOptionPane.QUESTION_MESSAGE,
-                    null,
-                    new String[]{"确定", "取消"}, // 自定义按钮
-                    "确定"
-            );
-            if ( result == 0 )
-            {
-                if (player.getMoney() >= priceLevelUp[houseLevel])
+                if (AIDecision.shouldBuyLand(player, this) && player.getMoney() >= priceLevelUp[houseLevel])
                 {
                     player.moneyDecrease(priceLevelUp[houseLevel]);
-                    this.setOwner(player);
-                    player.addTilesOwned(this);
-                }else
-                {
-                    JOptionPane.showMessageDialog(null,"你没资格啊没资格");
-                }
-            }
-
-        }else if ( owner != player){
-            int taxAmount = tax[houseLevel];
-            Log.info(player.getName() + " 交税 $" + taxAmount + " 给 " + owner.getName() + "（" + this.getName() + " Lv" + houseLevel + "）");
-            if (player.isAI())
-            {
-                AIDecision.showAIMessage(player.getName() + " 到了 " + owner.getName()
-                        + " 的领地，交税 $" + taxAmount);
-            }
-            else
-            {
-                JOptionPane.showMessageDialog(null, "交付" + taxAmount, "到了" + player.getOtherPlayerName() + "的领地", JOptionPane.INFORMATION_MESSAGE);
-            }
-            player.moneyDecrease(taxAmount);
-            owner.moneyIncrease(taxAmount);
-        }else {
-            // 升级逻辑
-            if (houseLevel >= maxLevel) return;
-
-            // AI: AI 玩家自动决定是否升级
-            if (player.isAI())
-            {
-                if (AIDecision.shouldUpgradeLand(player, this))
-                {
-                    if (player.getMoney() >= priceLevelUp[houseLevel+1])
-                    {
-                        player.moneyDecrease(priceLevelUp[houseLevel+1]);
-                        this.houseLevel++;
-                        AIDecision.showAIMessage(player.getName() + " 升级了 " + this.getName()
-                                + " 到 " + houseLevel + " 级，花费 $" + priceLevelUp[houseLevel]);
-                    }
+                    this.setOwner(player); player.addTilesOwned(this);
+                    AIDecision.showAIMessage(player.getName() + " 购买了 " + this.getName() + "，花费 $" + priceLevelUp[houseLevel]);
                 }
                 return;
             }
-
-            int result = JOptionPane.showOptionDialog(
-                    null,
-                    "升级当前房产:" + this.getName()  +"? 价格是" + (this.priceLevelUp[houseLevel+1]) ,
-                    "确认",
-                    JOptionPane.YES_NO_CANCEL_OPTION,
-                    JOptionPane.QUESTION_MESSAGE,
-                    null,
-                    new String[]{"确定", "取消"}, // 自定义按钮
-                    "确定"
-            );
-            if (result == 0)
+            // 联机：弹窗选，结果发服务端
+            if (player.isOnline())
             {
-                if (player.getMoney() >= priceLevelUp[houseLevel+1])
+                int r = JOptionPane.showOptionDialog(null,
+                    "购买当前房产:" + this.getName() + "? 价格是" + this.getCurrentPrice(),
+                    "确认", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE,
+                    null, new String[]{"确定", "取消"}, "确定");
+                player.getGameController().onLandChoice(r == 0);
+                return;
+            }
+            // 本地
+            int result = JOptionPane.showOptionDialog(null,
+                    "购买当前房产:" + this.getName() + "? 价格是" + this.getCurrentPrice(),
+                    "确认", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE,
+                    null, new String[]{"确定", "取消"}, "确定");
+            if (result == 0 && player.getMoney() >= priceLevelUp[houseLevel])
+            {
+                player.moneyDecrease(priceLevelUp[houseLevel]);
+                this.setOwner(player); player.addTilesOwned(this);
+            }
+            else if (result == 0)
+                JOptionPane.showMessageDialog(null, "你没资格啊没资格");
+
+        }
+        else if (owner != player)
+        {
+            int taxAmount = tax[houseLevel];
+            Log.info(player.getName() + " 交税 $" + taxAmount + " 给 " + owner.getName());
+            if (player.isAI())
+                AIDecision.showAIMessage(player.getName() + " 到了 " + owner.getName() + " 的领地，交税 $" + taxAmount);
+            else
+                JOptionPane.showMessageDialog(null, "交付" + taxAmount, "到了" + player.getOtherPlayerName() + "的领地", JOptionPane.INFORMATION_MESSAGE);
+            player.moneyDecrease(taxAmount);
+            owner.moneyIncrease(taxAmount);
+        }
+        else
+        {
+            if (houseLevel >= maxLevel) return;
+            // AI
+            if (player.isAI())
+            {
+                if (AIDecision.shouldUpgradeLand(player, this) && player.getMoney() >= priceLevelUp[houseLevel+1])
                 {
                     player.moneyDecrease(priceLevelUp[houseLevel+1]);
                     this.houseLevel++;
-                }else
-                {
-                    JOptionPane.showMessageDialog(null,"你没资格啊没资格");
+                    AIDecision.showAIMessage(player.getName() + " 升级了 " + this.getName() + " 到 " + houseLevel + " 级，花费 $" + priceLevelUp[houseLevel]);
                 }
+                return;
             }
+            // 联机
+            if (player.isOnline())
+            {
+                int r = JOptionPane.showOptionDialog(null,
+                    "升级当前房产:" + this.getName() + "? 价格是" + this.priceLevelUp[houseLevel+1],
+                    "确认", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE,
+                    null, new String[]{"确定", "取消"}, "确定");
+                player.getGameController().onUpgradeChoice(r == 0);
+                return;
+            }
+            // 本地
+            int result = JOptionPane.showOptionDialog(null,
+                    "升级当前房产:" + this.getName() + "? 价格是" + this.priceLevelUp[houseLevel+1],
+                    "确认", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE,
+                    null, new String[]{"确定", "取消"}, "确定");
+            if (result == 0 && player.getMoney() >= priceLevelUp[houseLevel+1])
+            {
+                player.moneyDecrease(priceLevelUp[houseLevel+1]);
+                this.houseLevel++;
+            }
+            else if (result == 0)
+                JOptionPane.showMessageDialog(null, "你没资格啊没资格");
         }
     }
 

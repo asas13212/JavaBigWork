@@ -47,16 +47,9 @@ public class ActorLayerPanel extends JPanel
         }
         DiceController dc = map.diceController;
         if (dc != null && dc.diceImg != null && dc.diceImg[0] != null && !dc.isDiceRolling) {
-            if (MainMap.round == 0) {
-                g.drawImage(dc.diceImg[0].getImage(),
-                        1100, 650, 1200, 850,
-                        900, 0, 1000, 200, null);
-            } else {
-                int idx = Math.min(dc.diceValue - 1, dc.diceImg.length - 1);
-                g.drawImage(dc.diceImg[idx].getImage(),
-                        1100, 650, 1200, 850,
-                        900, 0, 1000, 200, null);
-            }
+            int idx = Math.max(0, Math.min(dc.diceValue - 1, dc.diceImg.length - 1));
+            g.drawImage(dc.diceImg[idx].getImage(),
+                    1100, 650, 1200, 850, 900, 0, 1000, 200, null);
         }
         if (dc != null && dc.isDiceRolling && dc.diceImg != null) {
             int frameWidth = 100;

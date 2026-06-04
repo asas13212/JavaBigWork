@@ -60,6 +60,11 @@ public class Player
 
     private boolean isMoving;
 
+    // 联机: 游戏控制器引用
+    private GameController gameController;
+    public GameController getGameController() { return gameController; }
+    public void setGameController(GameController gc) { this.gameController = gc; }
+
     // AI: 是否为 AI 玩家
     private boolean isAI = false;
 

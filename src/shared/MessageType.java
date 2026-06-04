@@ -15,9 +15,7 @@ public enum MessageType
     USE_PROP,          // 使用道具 {"propName":"路障","targetIdx":12}
     BUY_LAND,          // 买地确认 {"choice":true}
     UPGRADE,           // 升级确认 {"choice":true}
-    HOTEL_CHOICE,      // 住店确认 {"choice":true}
-    SHOP_BUY,          // 商店购买 {"itemName":"地雷"}
-    CASINO_BET,        // 赌场下注 {"amount":500}
+    TURN_END,          // 回合结束，请求切换玩家
     LEAVE_ROOM,        // 离开房间
 
     // === 服务端 → 客户端 ===
