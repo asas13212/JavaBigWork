@@ -104,7 +104,7 @@ public class RemoteController implements GameController
 
     // ===== 操作 → 服务端 =====
     @Override public void onDiceClicked()
-    { if (!myTurn) return; client.send(new Message(MessageType.ROLL_DICE)); }
+    { if (!myTurn) return; myTurn = false; client.send(new Message(MessageType.ROLL_DICE)); }
 
     @Override public void onPropClicked(String propName)
     { if (!myTurn) return; client.send(new Message(MessageType.USE_PROP).put("propName", propName)); }
