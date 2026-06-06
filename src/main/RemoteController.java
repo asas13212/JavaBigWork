@@ -1,10 +1,13 @@
 package main;
 
+import architecture.Land;
+import architecture.Tile;
 import shared.Message;
 import shared.MessageType;
 import debug.Log;
 import javax.swing.*;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 联机对战控制器：本地玩家跑完整本地逻辑，远程玩家看动画+同步状态
@@ -117,18 +120,48 @@ public class RemoteController implements GameController
     }
 
     // ===== 状态同步 =====
+    @SuppressWarnings("unchecked")
     private void handleGameUpdate(Message msg)
     {
         String event = msg.get("event", "");
-        if (event == null) return;
+        if (event == null) { mainMap.refreshLayers(); return; }
         Player p0 = mainMap.getPlayer(0), p1 = mainMap.getPlayer(1);
+
+        Map<String, Object> data = msg.get("data");
+        if (data == null) { mainMap.refreshLayers(); return; }
+
+        String playerName = (String) data.get("playerName");
+        int tileIndex = data.get("tileIndex") instanceof Number n ? n.intValue() : -1;
+        if (playerName == null || tileIndex < 0) { mainMap.refreshLayers(); return; }
+
+        Player actor = playerName.equals("naiLong") ? p0 : p1;
+        Tile tile = mainMap.boardConfig.getTiles()[tileIndex];
 
         switch (event)
         {
             case "BUY_LAND":
+                if (tile instanceof Land land && land.getOwner() == null)
+                {
+                    int price = land.getCurrentPrice();
+                    actor.moneyDecrease(price);
+                    land.setOwner(actor);
+                    actor.addTilesOwned(land);
+                    Log.info(playerName + " 购买了 " + land.getName() + "，花费 $" + price);
+                }
+                break;
+
             case "UPGRADE":
+                if (tile instanceof Land land && land.getOwner() == actor && land.canLevelUp())
+                {
+                    int upgradePrice = land.getUpgradePrice();
+                    actor.moneyDecrease(upgradePrice);
+                    land.houseLevelUp();
+                    Log.info(playerName + " 升级了 " + land.getName() + "，花费 $" + upgradePrice);
+                }
+                break;
+
             case "USE_PROP":
-                // relayToOther 转发的消息，后续完善
+                // Task 5 实现
                 break;
         }
         mainMap.refreshLayers();

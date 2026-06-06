@@ -213,6 +213,18 @@ public abstract class Land extends Tile
     }
 
     /**
+     * 功能描述：获取升级到下一级的价格（最高级时返回最大值）
+     * @return 升级价格
+     * @author cyt & Claude
+     * @date 2026/6/6
+     */
+    public int getUpgradePrice()
+    {
+        if (houseLevel >= maxLevel) return Integer.MAX_VALUE;
+        return priceLevelUp[houseLevel + 1];
+    }
+
+    /**
      * 功能描述：房屋升级，防止越界
      */
     public void houseLevelUp()
