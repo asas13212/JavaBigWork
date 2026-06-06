@@ -68,14 +68,27 @@ public abstract class Land extends Tile
                 }
                 return;
             }
-            // 联机：弹窗选，结果发服务端
+            // 联机：弹窗选，发服务端 + 本地执行
             if (player.isOnline())
             {
                 int r = JOptionPane.showOptionDialog(null,
                     "购买当前房产:" + this.getName() + "? 价格是" + this.getCurrentPrice(),
                     "确认", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE,
                     null, new String[]{"确定", "取消"}, "确定");
-                player.getGameController().onLandChoice(r == 0);
+                if (r == 0)
+                {
+                    player.getGameController().onLandChoice(true);
+                    if (player.getMoney() >= priceLevelUp[houseLevel])
+                    {
+                        player.moneyDecrease(priceLevelUp[houseLevel]);
+                        this.setOwner(player);
+                        player.addTilesOwned(this);
+                    }
+                    else
+                    {
+                        JOptionPane.showMessageDialog(null, "你没资格啊没资格");
+                    }
+                }
                 return;
             }
             // 本地
@@ -117,14 +130,26 @@ public abstract class Land extends Tile
                 }
                 return;
             }
-            // 联机
+            // 联机：弹窗选，发服务端 + 本地执行
             if (player.isOnline())
             {
                 int r = JOptionPane.showOptionDialog(null,
                     "升级当前房产:" + this.getName() + "? 价格是" + this.priceLevelUp[houseLevel+1],
                     "确认", JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE,
                     null, new String[]{"确定", "取消"}, "确定");
-                player.getGameController().onUpgradeChoice(r == 0);
+                if (r == 0)
+                {
+                    player.getGameController().onUpgradeChoice(true);
+                    if (player.getMoney() >= priceLevelUp[houseLevel+1])
+                    {
+                        player.moneyDecrease(priceLevelUp[houseLevel+1]);
+                        this.houseLevel++;
+                    }
+                    else
+                    {
+                        JOptionPane.showMessageDialog(null, "你没资格啊没资格");
+                    }
+                }
                 return;
             }
             // 本地
