@@ -363,6 +363,46 @@ public class MainMap extends JFrame
                     // AI 回合或非本人回合时禁止点击道具
                     if (getCurrentPlayer().isAI() || (gameController != null && !gameController.isMyTurn())) return;
 
+                    // 联机模式：先发消息再本地执行
+                    if (gameController != null && gameController.getMode() == GameMode.ONLINE)
+                    {
+                        Player currentPlayer = getCurrentPlayer();
+                        switch (def.category)
+                        {
+                            case SELF -> {
+                                gameController.onPropClicked(def.name, currentPlayer.getName());
+                                currentPlayer.use(def.name, currentPlayer);
+                            }
+                            case SELECTABLE -> {
+                                int result = JOptionPane.showOptionDialog(
+                                        null,
+                                        "选择玩家，对其使用" + def.name,
+                                        "选择玩家",
+                                        JOptionPane.YES_NO_CANCEL_OPTION,
+                                        JOptionPane.QUESTION_MESSAGE,
+                                        null,
+                                        new String[]{"自己", "对方", "取消"},
+                                        "确定"
+                                );
+                                if (result == 1) {
+                                    Player other = players[(currentPlayerIndex + 1) % players.length];
+                                    gameController.onPropClicked(def.name, other.getName());
+                                    currentPlayer.use(def.name, other);
+                                } else if (result == 0) {
+                                    gameController.onPropClicked(def.name, currentPlayer.getName());
+                                    currentPlayer.use(def.name, currentPlayer);
+                                }
+                            }
+                            case OTHER -> {
+                                Player other = players[(currentPlayerIndex + 1) % players.length];
+                                gameController.onPropClicked(def.name, other.getName());
+                                currentPlayer.use(def.name, other);
+                            }
+                        }
+                        refreshLayers();
+                        return;
+                    }
+
                     switch (def.category) {
                         case SELF -> getCurrentPlayer().use(def.name, getCurrentPlayer());
                         case SELECTABLE -> {

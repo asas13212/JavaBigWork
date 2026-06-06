@@ -8,7 +8,7 @@ package main;
 public interface GameController
 {
     void onDiceClicked();
-    void onPropClicked(String propName);
+    void onPropClicked(String propName, String targetName);
     void onLandChoice(boolean yes);
     void onUpgradeChoice(boolean yes);
     GameMode getMode();

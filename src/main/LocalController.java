@@ -15,7 +15,7 @@ public class LocalController implements GameController
     }
 
     @Override public void onDiceClicked() { /* handled by DiceController directly */ }
-    @Override public void onPropClicked(String propName) { /* handled by MainMap.addPropsListener */ }
+    @Override public void onPropClicked(String propName, String targetName) { /* handled by MainMap.addPropsListener */ }
     @Override public void onLandChoice(boolean yes) { /* handled by Land.onPlayerArrive JOptionPane */ }
     @Override public void onUpgradeChoice(boolean yes) { /* handled by Land.onPlayerArrive JOptionPane */ }
     @Override public GameMode getMode() { return GameMode.LOCAL_PVP; }

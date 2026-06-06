@@ -178,8 +178,14 @@ public class RemoteController implements GameController
     @Override public void onDiceClicked()
     { if (!myTurn) return; myTurn = false; client.send(new Message(MessageType.ROLL_DICE)); }
 
-    @Override public void onPropClicked(String propName)
-    { if (!myTurn) return; client.send(new Message(MessageType.USE_PROP).put("propName", propName)); }
+    @Override public void onPropClicked(String propName, String targetName)
+    {
+        if (!myTurn) return;
+        client.send(new Message(MessageType.USE_PROP)
+            .put("propName", propName)
+            .put("playerName", myPlayerName)
+            .put("targetName", targetName));
+    }
 
     @Override public void onLandChoice(boolean yes)
     {

@@ -169,8 +169,8 @@ public class Player
         Integer count = propsCount.get(propName);
         if (count == null || count <= 0) return;
 
-        // AI: AI 玩家跳过确认对话框
-        if (!isAI) {
+        // AI / 联机重放：跳过确认对话框
+        if (!isAI && !isOnline) {
             int result = JOptionPane.showOptionDialog(
                     null,
                     lookup.getName() + ":" + lookup.getDescription() ,
