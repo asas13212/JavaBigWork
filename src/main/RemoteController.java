@@ -149,10 +149,24 @@ public class RemoteController implements GameController
     { if (!myTurn) return; client.send(new Message(MessageType.USE_PROP).put("propName", propName)); }
 
     @Override public void onLandChoice(boolean yes)
-    { client.send(new Message(MessageType.BUY_LAND).put("choice", yes)); }
+    {
+        if (!yes) return;
+        Player cp = mainMap.getCurrentPlayer();
+        client.send(new Message(MessageType.BUY_LAND)
+            .put("choice", true)
+            .put("tileIndex", cp.getPositionIndex())
+            .put("playerName", cp.getName()));
+    }
 
     @Override public void onUpgradeChoice(boolean yes)
-    { client.send(new Message(MessageType.UPGRADE).put("choice", yes)); }
+    {
+        if (!yes) return;
+        Player cp = mainMap.getCurrentPlayer();
+        client.send(new Message(MessageType.UPGRADE)
+            .put("choice", true)
+            .put("tileIndex", cp.getPositionIndex())
+            .put("playerName", cp.getName()));
+    }
 
     public void turnEnded()
     {
