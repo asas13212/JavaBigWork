@@ -223,7 +223,9 @@ public class OnlinePanel extends JPanel
             try
             {
                 String classpath = "out;lib/java-websocket-1.5.7.jar;lib/slf4j-api-2.0.9.jar;lib/slf4j-nop-2.0.9.jar";
-                new ProcessBuilder("java", "-cp", classpath, "server.MonopolyServer", "8080")
+                String javaHome = System.getProperty("java.home");
+                String javaExe = javaHome + "\\bin\\java.exe";
+                new ProcessBuilder(javaExe, "-cp", classpath, "server.MonopolyServer", "8080")
                     .redirectErrorStream(true)
                     .start();
 

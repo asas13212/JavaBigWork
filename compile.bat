@@ -6,8 +6,8 @@ echo === 编译大富翁（客户端 + 服务端）===
 if exist out rmdir /s /q out
 mkdir out
 
-:: 全量编译
-javac -encoding UTF-8 ^
+:: 全量编译（使用 JDK 25）
+"C:\Program Files\Eclipse Adoptium\jdk-25.0.2.10-hotspot\bin\javac" -encoding UTF-8 ^
   -cp "lib/java-websocket-1.5.7.jar;lib/slf4j-api-2.0.9.jar" ^
   -d out ^
   src/shared/MessageType.java ^
