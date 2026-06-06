@@ -161,8 +161,18 @@ public class RemoteController implements GameController
                 break;
 
             case "USE_PROP":
-                // Task 5 实现
+            {
+                String propName = (String) data.get("propName");
+                String targetName = (String) data.get("targetName");
+                if (propName != null && targetName != null)
+                {
+                    Player target = targetName.equals("naiLong") ? p0 : p1;
+                    // 路障/万能骰子/升级卡 的额外参数同步待后续完善
+                    actor.use(propName, target);
+                    Log.info(playerName + " 对 " + targetName + " 使用了 " + propName);
+                }
                 break;
+            }
         }
         mainMap.refreshLayers();
     }

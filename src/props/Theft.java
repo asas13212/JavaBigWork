@@ -44,7 +44,7 @@ public class Theft extends Prop
         int victimMoney = target.getMoney();
         if (victimMoney <= 0)
         {
-            if (thief.isAI())
+            if (thief.isAI() || thief.isOnline())
                 AIDecision.showAIMessage(thief.getName() + " 想偷但对方没钱");
             else
                 JOptionPane.showMessageDialog(null, "对方没有钱可以偷取！");
@@ -59,7 +59,7 @@ public class Theft extends Prop
         target.moneyDecrease(amount);
         thief.moneyIncrease(amount);
 
-        if (thief.isAI())
+        if (thief.isAI() || thief.isOnline())
             AIDecision.showAIMessage(thief.getName() + " 偷取了 " + target.getName() + " $" + amount);
         else
             JOptionPane.showMessageDialog(null,

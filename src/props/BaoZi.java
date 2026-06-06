@@ -38,7 +38,7 @@ public class BaoZi extends Prop
     {
         if (target.getHp() >= ConstantNum.PLAYER_HP)
         {
-            if (target.isAI())
+            if (target.isAI() || target.isOnline())
                 AIDecision.showAIMessage(target.getName() + " 生命值已满，跳过包子");
             else
                 javax.swing.JOptionPane.showMessageDialog(null, "生命值已满，无需使用！");
